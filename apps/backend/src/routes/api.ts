@@ -31,12 +31,27 @@ export function createApiRouter(dependencies: {
     const identity = resolveDemoIdentity(request, {
       secret: config.demoAuthSecret,
       defaultTenantId: config.demoTenantId,
-      allowHeaderFallback: true
+      allowHeaderFallback: false
     });
     if (!identity) {
       response.status(401).json({ error: "Unauthorized" });
       return null;
     }
+    return identity;
+  }
+
+  async function requireRoomAccess(request: Request, response: Response) {
+    const identity = requireIdentity(request, response);
+    if (!identity) {
+      return null;
+    }
+
+    const allowed = await dependencies.store.hasRoomAccess(identity.userId, String(request.params.roomId));
+    if (!allowed) {
+      response.status(403).json({ error: "Forbidden" });
+      return null;
+    }
+
     return identity;
   }
 
@@ -68,7 +83,12 @@ export function createApiRouter(dependencies: {
     if (!identity) {
       return;
     }
-    response.json(await dependencies.publisher.getClientAccessToken(identity.userId));
+    const roomId = String(request.query.roomId ?? "");
+    if (!roomId || !(await dependencies.store.hasRoomAccess(identity.userId, roomId))) {
+      response.status(403).json({ error: "Forbidden" });
+      return;
+    }
+    response.json(await dependencies.publisher.getClientAccessToken({ userId: identity.userId, tenantId: identity.tenantId, roomId }));
   });
 
   router.get("/rooms", async (request, response) => {
@@ -81,20 +101,32 @@ export function createApiRouter(dependencies: {
   });
 
   router.get("/rooms/:roomId/messages", async (request, response) => {
+    const identity = await requireRoomAccess(request, response);
+    if (!identity) {
+      return;
+    }
     const take = Number(request.query.take ?? 50);
     const messages = await dependencies.store.listMessages(request.params.roomId, Math.min(200, Math.max(1, take)));
     response.json({ messages });
   });
 
   router.get("/rooms/:roomId/members", async (request, response) => {
+    const identity = await requireRoomAccess(request, response);
+    if (!identity) {
+      return;
+    }
     const members = await dependencies.store.listRoomMembers(request.params.roomId);
     response.json({ members });
   });
 
   router.get("/rooms/:roomId/search", async (request, response) => {
+    const identity = await requireRoomAccess(request, response);
+    if (!identity) {
+      return;
+    }
     const query = String(request.query.query ?? "");
     const messages = query
-      ? await dependencies.store.searchMessages(request.params.roomId, query)
+      ? await dependencies.store.searchMessages(request.params.roomId, query, identity.userId)
       : await dependencies.store.listMessages(request.params.roomId, 50);
     response.json({ messages });
   });
@@ -106,7 +138,7 @@ export function createApiRouter(dependencies: {
       return;
     }
 
-    const identity = requireIdentity(request, response);
+    const identity = await requireRoomAccess(request, response);
     if (!identity) {
       return;
     }
@@ -129,7 +161,7 @@ export function createApiRouter(dependencies: {
   });
 
   router.post("/rooms/:roomId/messages/:messageId/read", async (request, response) => {
-    const identity = requireIdentity(request, response);
+    const identity = await requireRoomAccess(request, response);
     if (!identity) {
       return;
     }
@@ -152,7 +184,7 @@ export function createApiRouter(dependencies: {
 
   router.post("/rooms/:roomId/messages/:messageId/reactions", async (request, response) => {
     const reaction = String(request.body?.reaction ?? "thumbsUp");
-    const identity = requireIdentity(request, response);
+    const identity = await requireRoomAccess(request, response);
     if (!identity) {
       return;
     }
@@ -174,7 +206,7 @@ export function createApiRouter(dependencies: {
   });
 
   router.delete("/rooms/:roomId/messages/:messageId/reactions/:reaction", async (request, response) => {
-    const identity = requireIdentity(request, response);
+    const identity = await requireRoomAccess(request, response);
     if (!identity) {
       return;
     }
@@ -197,7 +229,7 @@ export function createApiRouter(dependencies: {
 
   router.post("/rooms/:roomId/typing", async (request, response) => {
     const started = request.body?.started !== false;
-    const identity = requireIdentity(request, response);
+    const identity = await requireRoomAccess(request, response);
     if (!identity) {
       return;
     }
@@ -218,7 +250,7 @@ export function createApiRouter(dependencies: {
 
   router.post("/rooms/:roomId/pin", async (request, response) => {
     const pinned = Boolean(request.body?.pinned);
-    const identity = requireIdentity(request, response);
+    const identity = await requireRoomAccess(request, response);
     if (!identity) {
       return;
     }

@@ -161,6 +161,10 @@ export interface SearchProjection {
   indexedContent: string;
   lastMessagePreview: string;
   visibleToUserIds: string[];
+  entries: Array<{
+    messageId: string;
+    indexedContent: string;
+  }>;
 }
 
 export interface TypingState {

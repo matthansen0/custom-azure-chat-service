@@ -101,10 +101,15 @@ export async function searchInRoom(userId, roomId, query) {
     const json = (await response.json());
     return json.messages;
 }
-export async function negotiate(userId) {
-    const response = await fetch(`${apiBase}/realtime/negotiate`, {
+export async function negotiate(userId, roomId) {
+    const url = new URL(`${apiBase}/realtime/negotiate`, window.location.origin);
+    url.searchParams.set("roomId", roomId);
+    const authorizedResponse = await fetch(url.toString(), {
         headers: headers(userId)
     });
-    const json = (await response.json());
-    return json.url;
+    if (!authorizedResponse.ok) {
+        throw new Error(`Realtime negotiation failed with status ${authorizedResponse.status}`);
+    }
+    const json = (await authorizedResponse.json());
+    return json;
 }

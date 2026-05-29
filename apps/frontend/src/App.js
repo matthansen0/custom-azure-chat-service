@@ -22,6 +22,7 @@ export function App() {
     const [typingByUser, setTypingByUser] = useState({});
     const [connectionStatus, setConnectionStatus] = useState("disconnected");
     const disconnectRef = useRef(null);
+    const pendingReadIdsRef = useRef(new Set());
     const activeRoom = useMemo(() => rooms.find((value) => value.id === activeRoomId), [rooms, activeRoomId]);
     useEffect(() => {
         const url = new URL(window.location.href);
@@ -79,9 +80,14 @@ export function App() {
                     const optimisticIndex = current.findIndex((value) => value.clientMessageId === payload.clientMessageId);
                     const created = {
                         id: payload.messageId,
+                        tenantId: event.tenantId,
+                        threadId: event.threadId ?? event.roomId ?? activeRoomId,
                         roomId: event.roomId ?? activeRoomId,
                         senderId: event.actorUserId,
                         content: payload.content,
+                        contentType: "text/plain",
+                        metadata: {},
+                        priority: "normal",
                         createdUtc: event.occurredUtc,
                         deleted: false,
                         reactionSummary: {},
@@ -206,7 +212,24 @@ export function App() {
             clearInterval(timer);
         };
     }, []);
-    const typingUsers = Object.keys(typingByUser).filter((id) => id !== userId);
+    useEffect(() => {
+        if (!activeRoomId) {
+            return;
+        }
+        const unreadIncoming = messages.filter((message) => message.roomId === activeRoomId &&
+            message.senderId !== userId &&
+            !message.readByUserIds.includes(userId) &&
+            !pendingReadIdsRef.current.has(message.id));
+        for (const message of unreadIncoming) {
+            pendingReadIdsRef.current.add(message.id);
+            void markRead(userId, activeRoomId, message.id).finally(() => {
+                pendingReadIdsRef.current.delete(message.id);
+            });
+        }
+    }, [activeRoomId, messages, userId]);
+    const typingUsers = Object.keys(typingByUser)
+        .filter((id) => id !== userId)
+        .map((id) => users.find((value) => value.id === id)?.label ?? id);
     return (_jsxs("div", { className: "layout", children: [_jsxs("aside", { className: "roomsRail", children: [_jsx("div", { className: "sectionTitle", children: "Users" }), _jsx("select", { value: userId, onChange: (event) => setUserId(event.target.value), children: users.map((user) => (_jsx("option", { value: user.id, children: user.label }, user.id))) }), _jsx("div", { className: "sectionTitle", children: "Rooms" }), rooms.map((room) => {
                         const unread = room.summary.unreadCountByUser[userId] ?? 0;
                         const isPinned = room.pinnedByUserIds.includes(userId);

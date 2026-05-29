@@ -1,6 +1,7 @@
+import type { DataStore } from "../persistence/store.js";
 import type { EventEnvelope } from "../events/contracts.js";
 
-export function createProjectionConsumer() {
+export function createProjectionConsumer(store: DataStore) {
   const seen = new Set<string>();
 
   return async (event: EventEnvelope): Promise<void> => {
@@ -9,5 +10,18 @@ export function createProjectionConsumer() {
       return;
     }
     seen.add(event.eventId);
+
+    switch (event.eventType) {
+      case "MessageCreated":
+      case "MessageEdited":
+      case "MessageDeleted": {
+        if (event.roomId) {
+          await store.rebuildSearchProjection(event.roomId);
+        }
+        break;
+      }
+      default:
+        break;
+    }
   };
 }

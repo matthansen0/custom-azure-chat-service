@@ -8,6 +8,10 @@ For ordering, room-scoped events receive monotonically increasing sequence numbe
 
 Pass 1 intentionally stops at the architecture skeleton. The backend now includes a signed demo bearer-token flow that models an external IdP handing off to a platform-issued token, plus a realtime negotiate endpoint that only issues Azure Web PubSub access after platform authentication succeeds. The current UI still runs a simplified demo experience, but the ownership boundary now matches the intended production shape.
 
+Pass 2 completes the first working slice on top of that skeleton. The application now supports thread listing, thread open, send message, room-scoped realtime delivery, typing indicators, read receipts, reactions, pinning, and room search backed by a separate projection path. Search no longer scans the transport path directly; a projection consumer rebuilds a searchable room index when message events land.
+
+For local development, the system uses an in-process WebSocket delivery adapter when Azure Web PubSub is not configured. Azure Web PubSub remains the primary production-facing realtime backbone, but the local fallback allows automated UX validation and multi-user demos without external infrastructure.
+
 Cosmos DB is set up with containers intended for room-scoped event storage and projection state. The partition strategy follows the main query patterns: event-log writes and room timeline reads are room-centric, so the event container uses a room-based partition key. Projection state uses an entity partition field so room summaries, membership snapshots, and typing/presence records can be grouped by the projection they belong to.
 
 The current repository keeps the authoritative event contracts richer than the current user-facing slice. Event types already cover thread, participant, preference, notification, audit, and template concepts needed by later passes, even though the initial UI only exercises a subset of them. That is deliberate: Pass 1 is about stabilizing the platform seams before expanding the commodity chat feature set in Pass 2.

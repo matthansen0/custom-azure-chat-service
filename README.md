@@ -43,11 +43,11 @@ Open this repo in GitHub Codespaces or VS Code Dev Containers. The dev container
 2. Azure Cosmos DB for the event log and state/projection containers.
 3. Application Insights for baseline observability.
 
-## Current Pass 1 Status
+## Current Status
 
-- Backend contracts are tenant-aware and thread-oriented while preserving room compatibility for the current UI slice.
-- Demo bearer-token issuance and verification are wired into the backend API, with temporary header fallback kept for local migration.
-- The frontend performs demo login before loading rooms and negotiating realtime access.
-- Validation now includes backend unit tests, repo typecheck, Playwright smoke coverage, and local/live harness scaffolding.
+- Pass 1 is complete: architecture skeleton, tenant-aware contracts, demo auth/token brokerage, Azure deployment skeleton, docs, and validation harness.
+- Pass 2 is complete: list/open thread, send message, realtime delivery, typing indicators, automatic read receipts, reactions, pin/unpin, and a separate search projection path.
+- Local development now includes a WebSocket-based realtime fallback so the full working slice can be exercised without provisioning Azure Web PubSub.
+- Validation includes backend unit and integration tests, workspace typecheck, shell smoke coverage, and a multi-user Playwright UX test.
 
 Architecture details live in [HOW_IT_WORKS.md](/workspaces/custom-azure-chat-service/HOW_IT_WORKS.md) and [docs/architecture.md](/workspaces/custom-azure-chat-service/docs/architecture.md).

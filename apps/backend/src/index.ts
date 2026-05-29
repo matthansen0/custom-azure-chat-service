@@ -1,17 +1,8 @@
-import cors from "cors";
-import express from "express";
-import { ChatCommands } from "./commands/chatCommands.js";
+import { createServer } from "node:http";
+import { createChatApp } from "./app.js";
 import { config } from "./config.js";
-import { createPersistenceConsumer } from "./consumers/persistenceConsumer.js";
-import { createProjectionConsumer } from "./consumers/projectionConsumer.js";
-import { EventRouter } from "./eventing/router.js";
-import { NoopPublisher, WebPubSubPublisher } from "./eventing/publisher.js";
+import { LocalRealtimePublisher, WebPubSubPublisher } from "./eventing/publisher.js";
 import { CosmosStore, MemoryStore } from "./persistence/store.js";
-import { createApiRouter } from "./routes/api.js";
-
-const app = express();
-app.use(cors({ origin: config.corsOrigin }));
-app.use(express.json());
 
 const store =
   config.cosmosEndpoint && config.cosmosKey
@@ -25,17 +16,25 @@ const store =
 
 await store.ensureSeedData();
 
+const httpServer = createServer();
+
 const publisher = config.webPubSubConnectionString
   ? new WebPubSubPublisher(config.webPubSubConnectionString, config.webPubSubHub)
-  : new NoopPublisher();
+  : new LocalRealtimePublisher({
+      server: httpServer,
+      store,
+      secret: config.demoAuthSecret,
+      port: config.port
+    });
 
-const commands = new ChatCommands(store);
-const router = new EventRouter();
-router.register(createPersistenceConsumer(store));
-router.register(createProjectionConsumer());
+const { app } = createChatApp({
+  corsOrigin: config.corsOrigin,
+  store,
+  publisher
+});
 
-app.use("/api", createApiRouter({ commands, eventRouter: router, publisher, store }));
+httpServer.on("request", app);
 
-app.listen(config.port, () => {
+httpServer.listen(config.port, () => {
   console.log(`chat backend running on http://localhost:${config.port}`);
 });

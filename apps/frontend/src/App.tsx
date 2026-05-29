@@ -37,6 +37,7 @@ export function App() {
   const [typingByUser, setTypingByUser] = useState<Record<string, number>>({});
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("disconnected");
   const disconnectRef = useRef<null | (() => Promise<void>)>(null);
+  const pendingReadIdsRef = useRef<Set<string>>(new Set());
 
   const activeRoom = useMemo(() => rooms.find((value) => value.id === activeRoomId), [rooms, activeRoomId]);
 
@@ -103,9 +104,14 @@ export function App() {
           const optimisticIndex = current.findIndex((value) => value.clientMessageId === payload.clientMessageId);
           const created: Message = {
             id: payload.messageId,
+            tenantId: event.tenantId,
+            threadId: event.threadId ?? event.roomId ?? activeRoomId,
             roomId: event.roomId ?? activeRoomId,
             senderId: event.actorUserId,
             content: payload.content,
+            contentType: "text/plain",
+            metadata: {},
+            priority: "normal",
             createdUtc: event.occurredUtc,
             deleted: false,
             reactionSummary: {},
@@ -243,7 +249,30 @@ export function App() {
     };
   }, []);
 
-  const typingUsers = Object.keys(typingByUser).filter((id) => id !== userId);
+  useEffect(() => {
+    if (!activeRoomId) {
+      return;
+    }
+
+    const unreadIncoming = messages.filter(
+      (message) =>
+        message.roomId === activeRoomId &&
+        message.senderId !== userId &&
+        !message.readByUserIds.includes(userId) &&
+        !pendingReadIdsRef.current.has(message.id)
+    );
+
+    for (const message of unreadIncoming) {
+      pendingReadIdsRef.current.add(message.id);
+      void markRead(userId, activeRoomId, message.id).finally(() => {
+        pendingReadIdsRef.current.delete(message.id);
+      });
+    }
+  }, [activeRoomId, messages, userId]);
+
+  const typingUsers = Object.keys(typingByUser)
+    .filter((id) => id !== userId)
+    .map((id) => users.find((value) => value.id === id)?.label ?? id);
 
   return (
     <div className="layout">

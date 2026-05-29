@@ -9,6 +9,7 @@
 - `PersistenceConsumer`: writes event log entries and updates lightweight read models.
 - `ProjectionConsumer`: reserved seam for search, summary, unread, preference, and notification projections.
 - `WebPubSubPublisher`: publishes room-scoped events to Azure Web PubSub for client delivery.
+- `LocalRealtimePublisher`: dev/test fallback that preserves the same event-driven contract while using a local WebSocket server.
 - `Cosmos DB`: durable event storage plus room/message/projection state.
 
 ## Event Flow
@@ -26,6 +27,7 @@
 - Authorization and tenant isolation live in platform-owned backend services, not in WebSocket handlers and not in the frontend.
 - Azure Web PubSub is a delivery fabric only; it is not the source of truth for membership, preferences, auditability, or search.
 - Search and projections are separate from transport and can evolve independently in later passes.
+- The local realtime fallback exists only so the working slice can be tested without Azure; the event publication contract is identical to the Azure path.
 
 ## Reliability Choices
 
@@ -39,5 +41,5 @@
 
 - The current Cosmos integration persists the event log first; richer projection persistence is still a later-pass task.
 - Demo auth uses a signed local token instead of a full external OIDC deployment, but preserves the external-IdP to platform-token to realtime-token handoff shape.
-- The UI still exercises a subset of the full event vocabulary; Pass 2 will start filling in the thread and participant feature surface.
+- The UI now exercises the first working slice of the event vocabulary: thread open/list, messaging, typing, reactions, read receipts, pinning, and room search.
 - Live Azure validation is scaffolded now and will deepen as more deployed capabilities land.

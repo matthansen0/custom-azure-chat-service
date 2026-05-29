@@ -1,4 +1,4 @@
-import type { Message, Room, User } from "./types.js";
+import type { Message, RealtimeNegotiation, Room, User } from "./types.js";
 
 const apiBase = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080/api";
 
@@ -133,10 +133,15 @@ export async function searchInRoom(userId: string, roomId: string, query: string
   return json.messages;
 }
 
-export async function negotiate(userId: string): Promise<string> {
-  const response = await fetch(`${apiBase}/realtime/negotiate`, {
+export async function negotiate(userId: string, roomId: string): Promise<RealtimeNegotiation> {
+  const url = new URL(`${apiBase}/realtime/negotiate`, window.location.origin);
+  url.searchParams.set("roomId", roomId);
+  const authorizedResponse = await fetch(url.toString(), {
     headers: headers(userId)
   });
-  const json = (await response.json()) as { url: string };
-  return json.url;
+  if (!authorizedResponse.ok) {
+    throw new Error(`Realtime negotiation failed with status ${authorizedResponse.status}`);
+  }
+  const json = (await authorizedResponse.json()) as RealtimeNegotiation;
+  return json;
 }

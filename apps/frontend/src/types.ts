@@ -92,3 +92,8 @@ export interface EventEnvelope {
   sequenceNumber: number | null;
   idempotencyKey: string;
 }
+
+export interface RealtimeNegotiation {
+  kind: "webpubsub" | "local";
+  url: string;
+}

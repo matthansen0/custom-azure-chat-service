@@ -1,6 +1,6 @@
 import { CosmosClient, type Container } from "@azure/cosmos";
 import type { EventEnvelope } from "../events/contracts.js";
-import type { Message, PresenceState, Room, RoomSummary, TypingState, User } from "../types/domain.js";
+import type { Message, PresenceState, Room, RoomSummary, SearchProjection, TypingState, User } from "../types/domain.js";
 
 const demoTenantId = "tenant-demo";
 
@@ -16,9 +16,11 @@ export interface DataStore {
   setPresence(userId: string, presence: PresenceState): Promise<void>;
   togglePin(roomId: string, userId: string, pinned: boolean): Promise<void>;
   listRooms(userId: string): Promise<Array<Room & { summary: RoomSummary }>>;
+  hasRoomAccess(userId: string, roomId: string): Promise<boolean>;
   listRoomMembers(roomId: string): Promise<User[]>;
   listMessages(roomId: string, take: number): Promise<Message[]>;
-  searchMessages(roomId: string, query: string): Promise<Message[]>;
+  rebuildSearchProjection(roomId: string): Promise<void>;
+  searchMessages(roomId: string, query: string, userId: string): Promise<Message[]>;
 }
 
 type MemoryState = {
@@ -26,6 +28,7 @@ type MemoryState = {
   users: User[];
   messages: Message[];
   summaries: RoomSummary[];
+  searchProjections: SearchProjection[];
   typing: TypingState[];
   processedKeys: Map<string, string>;
   sequenceByRoom: Map<string, number>;
@@ -37,6 +40,7 @@ export class MemoryStore implements DataStore {
     users: [],
     messages: [],
     summaries: [],
+    searchProjections: [],
     typing: [],
     processedKeys: new Map<string, string>(),
     sequenceByRoom: new Map<string, number>()
@@ -118,6 +122,10 @@ export class MemoryStore implements DataStore {
         visibleToUserIds: [...room.participantIds]
       }
     }));
+
+    for (const room of this.state.rooms) {
+      await this.rebuildSearchProjection(room.id);
+    }
   }
 
   async nextSequence(roomId: string): Promise<number> {
@@ -158,6 +166,33 @@ export class MemoryStore implements DataStore {
     if (room) {
       room.lastActivityUtc = message.createdUtc;
     }
+  }
+
+  async rebuildSearchProjection(roomId: string): Promise<void> {
+    const room = this.state.rooms.find((value) => value.id === roomId);
+    if (!room) {
+      return;
+    }
+
+    const roomMessages = this.state.messages
+      .filter((value) => value.roomId === roomId && !value.deleted)
+      .sort((left, right) => left.sequenceNumber - right.sequenceNumber);
+
+    const projection: SearchProjection = {
+      threadId: room.id,
+      tenantId: room.tenantId,
+      indexedContent: roomMessages.map((value) => value.content.toLowerCase()).join("\n"),
+      lastMessagePreview: roomMessages.at(-1)?.content ?? "",
+      visibleToUserIds: [...room.participantIds],
+      entries: roomMessages.map((value) => ({
+        messageId: value.id,
+        indexedContent: value.content.toLowerCase()
+      }))
+    };
+
+    const next = this.state.searchProjections.filter((value) => value.threadId !== roomId);
+    next.push(projection);
+    this.state.searchProjections = next;
   }
 
   async markRead(roomId: string, messageId: string, userId: string): Promise<void> {
@@ -218,6 +253,10 @@ export class MemoryStore implements DataStore {
     room.pinnedByUserIds = Array.from(set);
   }
 
+  async hasRoomAccess(userId: string, roomId: string): Promise<boolean> {
+    return this.state.rooms.some((value) => value.id === roomId && value.participantIds.includes(userId));
+  }
+
   async listRooms(userId: string): Promise<Array<Room & { summary: RoomSummary }>> {
     return this.state.rooms
       .filter((value) => value.participantIds.includes(userId))
@@ -266,11 +305,20 @@ export class MemoryStore implements DataStore {
       .sort((left, right) => left.sequenceNumber - right.sequenceNumber);
   }
 
-  async searchMessages(roomId: string, query: string): Promise<Message[]> {
+  async searchMessages(roomId: string, query: string, userId: string): Promise<Message[]> {
     const normalized = query.toLowerCase();
-    return this.state.messages.filter(
-      (value) => value.roomId === roomId && value.content.toLowerCase().includes(normalized)
+    const projection = this.state.searchProjections.find(
+      (value) => value.threadId === roomId && value.visibleToUserIds.includes(userId)
     );
+    if (!projection) {
+      return [];
+    }
+
+    const matchingMessageIds = new Set(
+      projection.entries.filter((entry) => entry.indexedContent.includes(normalized)).map((entry) => entry.messageId)
+    );
+
+    return this.state.messages.filter((value) => value.roomId === roomId && matchingMessageIds.has(value.id));
   }
 }
 

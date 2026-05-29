@@ -39,12 +39,22 @@ export interface ThreadPreference {
   customSortOrder?: number;
 }
 
+export interface NotificationPreference {
+  userId: string;
+  tenantId: string;
+  threadId?: string;
+  muted: boolean;
+  muteLowPriority: boolean;
+  allowPriorityOverride: boolean;
+}
+
 export interface Thread {
   id: string;
   tenantId: string;
   name: string;
   type: ThreadType;
   participantIds: string[];
+  createdByUserId?: string;
   createdUtc: string;
   lastActivityUtc: string;
   linkedContext?: LinkedContext;
@@ -77,6 +87,7 @@ export interface Message {
   editedUtc?: string;
   deleted: boolean;
   reactionSummary: Record<string, string[]>;
+  deliveredToUserIds: string[];
   readByUserIds: string[];
   sequenceNumber: number;
   clientMessageId?: string;
@@ -147,6 +158,7 @@ export interface ThreadSummary {
   unreadCountByUser: Record<string, number>;
   lastActivityUtc: string;
   participantSummary: Array<Pick<User, "id" | "displayName" | "presence">>;
+  linkedContext?: LinkedContext;
   securityBindings: {
     tenantId: string;
     visibleToUserIds: string[];

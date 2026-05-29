@@ -11,6 +11,7 @@
 - `WebPubSubPublisher`: publishes room-scoped events to Azure Web PubSub for client delivery.
 - `LocalRealtimePublisher`: dev/test fallback that preserves the same event-driven contract while using a local WebSocket server.
 - `Cosmos DB`: durable event storage plus room/message/projection state.
+- `Thread preference / notification / template / directory / audit state`: platform-owned data that sits alongside chat transport rather than inside it.
 
 ## Event Flow
 
@@ -28,6 +29,7 @@
 - Azure Web PubSub is a delivery fabric only; it is not the source of truth for membership, preferences, auditability, or search.
 - Search and projections are separate from transport and can evolve independently in later passes.
 - The local realtime fallback exists only so the working slice can be tested without Azure; the event publication contract is identical to the Azure path.
+- Pass 3 keeps “commodity chat plus platform context” behavior server-side: templates, notification policies, linked context, assignment updates, and audit records all remain outside the WebSocket layer.
 
 ## Reliability Choices
 
@@ -42,4 +44,5 @@
 - The current Cosmos integration persists the event log first; richer projection persistence is still a later-pass task.
 - Demo auth uses a signed local token instead of a full external OIDC deployment, but preserves the external-IdP to platform-token to realtime-token handoff shape.
 - The UI now exercises the first working slice of the event vocabulary: thread open/list, messaging, typing, reactions, read receipts, pinning, and room search.
+- The UI now also exercises the Pass 3 admin slice: thread admin, membership changes, message lifecycle controls, templates, directory search, context linking, assignment updates, and audit inspection.
 - Live Azure validation is scaffolded now and will deepen as more deployed capabilities land.

@@ -47,7 +47,8 @@ Open this repo in GitHub Codespaces or VS Code Dev Containers. The dev container
 
 - Pass 1 is complete: architecture skeleton, tenant-aware contracts, demo auth/token brokerage, Azure deployment skeleton, docs, and validation harness.
 - Pass 2 is complete: list/open thread, send message, realtime delivery, typing indicators, automatic read receipts, reactions, pin/unpin, and a separate search projection path.
-- Local development now includes a WebSocket-based realtime fallback so the full working slice can be exercised without provisioning Azure Web PubSub.
-- Validation includes backend unit and integration tests, workspace typecheck, shell smoke coverage, and a multi-user Playwright UX test.
+- Pass 3 is complete: room creation and deletion, participant add/remove/leave, message edit/delete/delivery/priority, archive/hide/mark-unread/follow-up state, thread-scoped notification preferences, quick template administration, directory filtering, context linking, assignment-driven membership updates, and audit visibility.
+- Local development includes a WebSocket-based realtime fallback so the full working slice can be exercised without provisioning Azure Web PubSub.
+- Validation includes backend unit and integration tests, workspace typecheck, shell smoke coverage, a multi-user Pass 2 UX test, and a Pass 3 admin/lifecycle UX test.
 
 Architecture details live in [HOW_IT_WORKS.md](/workspaces/custom-azure-chat-service/HOW_IT_WORKS.md) and [docs/architecture.md](/workspaces/custom-azure-chat-service/docs/architecture.md).

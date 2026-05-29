@@ -43,6 +43,35 @@ body {
   margin-top: 8px;
 }
 
+.roomsRail input,
+.roomsRail select,
+.membersPane input,
+.membersPane select,
+.membersPane textarea {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 8px 10px;
+  box-sizing: border-box;
+}
+
+.membersPane textarea {
+  min-height: 78px;
+  resize: vertical;
+}
+
+.toggleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.helperText {
+  font-size: 12px;
+  color: #64748b;
+}
+
 .roomItem {
   width: 100%;
   text-align: left;
@@ -77,6 +106,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16px;
 }
 
 .conversationHeader h1 {
@@ -136,6 +166,14 @@ body {
   margin: 8px 0;
 }
 
+.messageMeta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: #475569;
+}
+
 .messageActions {
   display: flex;
   gap: 8px;
@@ -155,6 +193,15 @@ body {
 .composer {
   display: grid;
   gap: 8px;
+}
+
+.templateBar {
+  display: flex;
+  gap: 8px;
+}
+
+.templateBar select {
+  max-width: 240px;
 }
 
 .composer textarea {
@@ -177,6 +224,86 @@ body {
   padding: 8px;
   border-radius: 8px;
   background: #f8fafc;
+}
+
+.roomStateCard,
+.directoryRow,
+.auditRow,
+.templateItem,
+.inlineEditor,
+.directoryList,
+.templateList,
+.auditList {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.roomStateCard {
+  padding: 10px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #dbe4f1;
+  display: grid;
+  gap: 6px;
+}
+
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.compactGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.directoryList,
+.templateList,
+.auditList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 180px;
+  overflow: auto;
+}
+
+.directoryRow,
+.auditRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #dbe4f1;
+}
+
+.rowActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.templateItem {
+  text-align: left;
+}
+
+.inlineEditor {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0;
+  flex-wrap: wrap;
+}
+
+.inlineEditor input {
+  flex: 1 1 220px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 10px;
 }
 
 .presence {

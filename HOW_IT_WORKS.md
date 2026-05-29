@@ -10,6 +10,8 @@ Pass 1 intentionally stops at the architecture skeleton. The backend now include
 
 Pass 2 completes the first working slice on top of that skeleton. The application now supports thread listing, thread open, send message, room-scoped realtime delivery, typing indicators, read receipts, reactions, pinning, and room search backed by a separate projection path. Search no longer scans the transport path directly; a projection consumer rebuilds a searchable room index when message events land.
 
+Pass 3 layers the surrounding platform-owned features around that chat slice without moving logic into the transport channel. Thread administration, participant membership, message edit/delete/delivery/priority changes, archive/hide/mark-unread/follow-up state, notification preferences, quick templates, directory filtering, linked context, assignment-driven membership, and audit views all ride through the same command-to-event-to-consumer path. The UI remains a prototype, but the behavior boundaries are explicit and testable.
+
 For local development, the system uses an in-process WebSocket delivery adapter when Azure Web PubSub is not configured. Azure Web PubSub remains the primary production-facing realtime backbone, but the local fallback allows automated UX validation and multi-user demos without external infrastructure.
 
 Cosmos DB is set up with containers intended for room-scoped event storage and projection state. The partition strategy follows the main query patterns: event-log writes and room timeline reads are room-centric, so the event container uses a room-based partition key. Projection state uses an entity partition field so room summaries, membership snapshots, and typing/presence records can be grouped by the projection they belong to.
@@ -25,3 +27,9 @@ Validation is now layered to match the intended Azure workflow:
 1. `bash scripts/validate.sh --static` checks the repo skeleton expected by azd.
 2. `bash scripts/validate.sh --local` runs backend unit tests, workspace typecheck, and Playwright smoke coverage against local dev servers.
 3. `bash scripts/validate.sh` is the live validation entry point for deployed Azure resources. It currently performs health checks when deployment URLs are provided and clearly reports `SKIP` when live infrastructure is not available yet.
+
+The local validator now covers three browser flows:
+
+- Pass 1 shell bootstrapping
+- Pass 2 realtime chat behavior
+- Pass 3 admin and lifecycle behavior

@@ -4,9 +4,34 @@ metadata:
 infra:
   provider: bicep
   path: infra
+services:
+  backend:
+    project: ./apps/backend
+    language: js
+    host: containerapp
+    docker:
+      path: ./Dockerfile
+      context: ../../
+  frontend:
+    project: ./apps/frontend
+    language: js
+    host: containerapp
+    docker:
+      path: ./Dockerfile
+      context: ../../
 hooks:
   preprovision:
     posix:
       shell: sh
       run: |
         bash scripts/validate.sh --static
+  postprovision:
+    posix:
+      shell: sh
+      run: |
+        bash scripts/azd-postprovision.sh
+  postdown:
+    posix:
+      shell: sh
+      run: |
+        bash scripts/azd-postdown.sh

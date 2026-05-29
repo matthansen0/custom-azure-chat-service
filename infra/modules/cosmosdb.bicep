@@ -103,6 +103,7 @@ resource stateContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/cont
 
 output accountName string = account.name
 output endpoint string = account.properties.documentEndpoint
+output primaryKey string = listKeys(account.id, account.apiVersion).primaryMasterKey
 output databaseName string = sqlDatabase.name
 output eventsContainerName string = eventsContainer.name
 output stateContainerName string = stateContainer.name

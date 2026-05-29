@@ -24,6 +24,9 @@ if [[ "$mode" == "--static" ]]; then
   [[ -f apps/frontend/src/App.tsx ]] || fail "frontend app exists"
   [[ -f apps/backend/.env.example ]] || fail "backend env example exists"
   [[ -f playwright.config.ts ]] || fail "playwright config exists"
+  [[ -f docs/architecture.svg ]] || fail "architecture diagram exists"
+  [[ -f scripts/azd-postprovision.sh ]] || fail "azd postprovision hook exists"
+  [[ -f scripts/azd-postdown.sh ]] || fail "azd postdown hook exists"
   pass "static repo skeleton checks"
   exit 0
 fi

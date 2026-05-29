@@ -32,3 +32,4 @@ resource service 'Microsoft.SignalRService/WebPubSub@2024-03-01' = {
 
 output serviceName string = service.name
 output endpoint string = service.properties.hostName
+output connectionString string = listKeys(service.id, service.apiVersion).primaryConnectionString

@@ -2,11 +2,13 @@
 
 Azure-native, event-driven chat prototype for a secure multi-tenant SaaS messaging platform using React, Node.js, Azure Web PubSub, and Cosmos DB.
 
+![Architecture](docs/architecture.svg)
+
 ## Overview
 
 - Event-driven backend where commands become typed domain events before persistence and delivery.
 - Azure Web PubSub used only for realtime fan-out; business logic remains in platform-owned services.
-- Pass 1 completed: tenant-aware event contracts, demo auth/token broker seam, local runnable skeleton, unit tests, Playwright smoke coverage, and validation harness scaffolding.
+- `azd` deployment shape now provisions ACR, a Container Apps environment, backend/frontend container apps, Web PubSub, Cosmos DB, App Insights, and Log Analytics.
 
 ## Prerequisites
 
@@ -18,6 +20,24 @@ Open this repo in GitHub Codespaces or VS Code Dev Containers. The dev container
 2. Copy [apps/backend/.env.example](/workspaces/custom-azure-chat-service/apps/backend/.env.example) to `apps/backend/.env` if you want to override defaults.
 3. Run `npm run dev` for the local prototype, or `npm run typecheck && npm run test` for a validation-only pass.
 4. Run `bash scripts/validate.sh --local` for the Pass 1 local validation harness.
+
+## Azure Deploy
+
+```bash
+az login --use-device-code
+azd auth login --use-device-code
+azd up
+```
+
+`azd up` provisions the Azure resources from Bicep, then runs `scripts/azd-postprovision.sh` to build and push the backend/frontend images to ACR and update the Container Apps.
+
+Cleanup:
+
+```bash
+azd down --force --purge
+```
+
+The repo includes `scripts/azd-postdown.sh`, which waits for the Cosmos DB account name to be fully released before returning so immediate redeploys do not trip over global Cosmos name conflicts.
 
 ## Parameters
 
@@ -39,9 +59,17 @@ Open this repo in GitHub Codespaces or VS Code Dev Containers. The dev container
 
 ## What Gets Deployed
 
-1. Azure Web PubSub for room-scoped realtime delivery.
-2. Azure Cosmos DB for the event log and state/projection containers.
-3. Application Insights for baseline observability.
+1. Azure Container Registry for backend and frontend images.
+2. Container Apps environment plus separate backend and frontend container apps.
+3. Azure Web PubSub for room-scoped realtime delivery.
+4. Azure Cosmos DB for the event log and state/projection containers.
+5. Application Insights and Log Analytics for baseline observability.
+
+## Screenshots
+
+![Thread View](media/thread-view.png)
+
+![Admin View](media/admin-view.png)
 
 ## Current Status
 

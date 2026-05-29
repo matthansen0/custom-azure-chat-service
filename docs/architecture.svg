@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="860" viewBox="0 0 1400 860" fill="none">
+  <rect width="1400" height="860" fill="#F7FAFC"/>
+  <text x="60" y="70" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700" fill="#0F172A">Azure Event Chat Prototype Architecture</text>
+  <text x="60" y="104" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#475569">Runtime flow, platform-owned decision points, and Azure deployment shape</text>
+
+  <rect x="60" y="150" width="250" height="120" rx="18" fill="#E0F2FE" stroke="#0EA5E9" stroke-width="2"/>
+  <text x="90" y="190" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#0C4A6E">Clients</text>
+  <text x="90" y="225" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#164E63">Web React prototype</text>
+  <text x="90" y="250" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#164E63">Future mobile clients</text>
+
+  <rect x="370" y="150" width="280" height="140" rx="18" fill="#DCFCE7" stroke="#16A34A" stroke-width="2"/>
+  <text x="400" y="190" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#14532D">Frontend Shell</text>
+  <text x="400" y="225" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#166534">Session bootstrap</text>
+  <text x="400" y="250" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#166534">Thread view, composer, admin UX</text>
+  <text x="400" y="275" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#166534">WebSocket delivery only</text>
+
+  <rect x="720" y="140" width="300" height="170" rx="18" fill="#FEF3C7" stroke="#D97706" stroke-width="2"/>
+  <text x="750" y="180" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#7C2D12">Backend API</text>
+  <text x="750" y="215" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#92400E">Demo OIDC-style token issuance</text>
+  <text x="750" y="240" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#92400E">AuthZ + tenant isolation</text>
+  <text x="750" y="265" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#92400E">Commands -&gt; events</text>
+  <text x="750" y="290" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#92400E">Realtime token brokerage</text>
+
+  <rect x="1090" y="150" width="250" height="120" rx="18" fill="#FCE7F3" stroke="#DB2777" stroke-width="2"/>
+  <text x="1120" y="190" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#831843">Azure Web PubSub</text>
+  <text x="1120" y="225" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#9D174D">Thread-scoped fan-out</text>
+  <text x="1120" y="250" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#9D174D">Delivery transport only</text>
+
+  <rect x="720" y="380" width="300" height="210" rx="18" fill="#EDE9FE" stroke="#7C3AED" stroke-width="2"/>
+  <text x="750" y="420" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#4C1D95">Event Router + Consumers</text>
+  <text x="750" y="455" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#5B21B6">Persistence consumer</text>
+  <text x="750" y="480" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#5B21B6">Projection / search consumer</text>
+  <text x="750" y="505" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#5B21B6">Audit emission</text>
+  <text x="750" y="530" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#5B21B6">Preferences, templates, directory,</text>
+  <text x="750" y="555" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#5B21B6">context and assignment updates</text>
+
+  <rect x="1090" y="395" width="250" height="180" rx="18" fill="#F1F5F9" stroke="#64748B" stroke-width="2"/>
+  <text x="1120" y="435" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#334155">Cosmos DB</text>
+  <text x="1120" y="470" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#475569">Event log container</text>
+  <text x="1120" y="495" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#475569">State / projection container</text>
+  <text x="1120" y="520" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#475569">Thread summaries</text>
+  <text x="1120" y="545" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#475569">Search index, audit trail</text>
+
+  <rect x="60" y="650" width="1280" height="150" rx="20" fill="#0F172A"/>
+  <text x="90" y="695" font-family="Segoe UI, Arial, sans-serif" font-size="26" font-weight="700" fill="#F8FAFC">Azure Deployment Shape (`azd up`)</text>
+  <text x="90" y="732" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#CBD5E1">Resource Group -&gt; ACR -&gt; Container Apps Environment -&gt; Backend Container App + Frontend Container App -&gt; Web PubSub -&gt; Cosmos DB -&gt; App Insights + Log Analytics</text>
+  <text x="90" y="765" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#CBD5E1">`azd down --force --purge` uses a postdown wait hook that blocks until the Cosmos account name is released to avoid immediate redeploy conflicts.</text>
+
+  <path d="M310 210H370" stroke="#334155" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M650 220H720" stroke="#334155" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M1020 220H1090" stroke="#334155" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M870 310V380" stroke="#334155" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M1020 485H1090" stroke="#334155" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M1170 270V395" stroke="#334155" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M1170 395C1170 340 1120 310 1020 310" stroke="#334155" stroke-width="3" stroke-dasharray="10 10" fill="none" marker-end="url(#arrow)"/>
+  <text x="517" y="197" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#475569">HTTPS</text>
+  <text x="683" y="206" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#475569">commands</text>
+  <text x="1040" y="206" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#475569">realtime tokens</text>
+  <text x="887" y="355" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#475569">events</text>
+  <text x="1043" y="472" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#475569">projections</text>
+  <text x="1184" y="338" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#475569">fan-out</text>
+
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0 0L10 5L0 10Z" fill="#334155"/>
+    </marker>
+  </defs>
+</svg>

@@ -1,5 +1,7 @@
 # Architecture
 
+![Architecture](architecture.svg)
+
 ## Component Map
 
 - `apps/frontend`: React prototype client with a left-rail thread list, active thread pane, search, reactions, read receipts, typing indicators, presence, and a demo session bootstrap flow.
@@ -12,6 +14,19 @@
 - `LocalRealtimePublisher`: dev/test fallback that preserves the same event-driven contract while using a local WebSocket server.
 - `Cosmos DB`: durable event storage plus room/message/projection state.
 - `Thread preference / notification / template / directory / audit state`: platform-owned data that sits alongside chat transport rather than inside it.
+
+## Deployment Shape
+
+- `azd` provisions the shared Azure resources and captures outputs into the environment.
+- Azure Container Registry stores the backend and frontend images.
+- A shared Container Apps environment hosts two apps: `backend` and `frontend`.
+- Azure Web PubSub handles realtime fan-out for deployed clients.
+- Cosmos DB stores the event log and state/projection documents.
+- Application Insights and Log Analytics provide baseline diagnostics.
+
+## Teardown Decision
+
+The repository explicitly waits for Cosmos DB account-name release after `azd down --force --purge`. That decision is about operator ergonomics: the fastest local iteration loop is “deploy, test, destroy, redeploy”, and Cosmos global-name reservation is a common source of friction in that loop.
 
 ## Event Flow
 

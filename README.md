@@ -1,0 +1,53 @@
+# Azure Event Chat Prototype
+
+Azure-native, event-driven chat prototype for a secure multi-tenant SaaS messaging platform using React, Node.js, Azure Web PubSub, and Cosmos DB.
+
+## Overview
+
+- Event-driven backend where commands become typed domain events before persistence and delivery.
+- Azure Web PubSub used only for realtime fan-out; business logic remains in platform-owned services.
+- Pass 1 completed: tenant-aware event contracts, demo auth/token broker seam, local runnable skeleton, unit tests, Playwright smoke coverage, and validation harness scaffolding.
+
+## Prerequisites
+
+Open this repo in GitHub Codespaces or VS Code Dev Containers. The dev container is the supported environment.
+
+## Quick Start
+
+1. Reopen the repo in the dev container and let dependency installation finish.
+2. Copy [apps/backend/.env.example](/workspaces/custom-azure-chat-service/apps/backend/.env.example) to `apps/backend/.env` if you want to override defaults.
+3. Run `npm run dev` for the local prototype, or `npm run typecheck && npm run test` for a validation-only pass.
+4. Run `bash scripts/validate.sh --local` for the Pass 1 local validation harness.
+
+## Parameters
+
+| Variable | Default | Notes |
+|---|---|---|
+| `PORT` | `8080` | Backend API port |
+| `CORS_ORIGIN` | `http://localhost:5173` | Frontend origin for local dev |
+| `DEMO_TENANT_ID` | `tenant-demo` | Default tenant claim for the demo auth flow |
+| `DEMO_AUTH_SECRET` | `dev-only-demo-secret-change-me` | HMAC secret for signed demo bearer tokens |
+| `DEMO_AUTH_TOKEN_TTL_MINUTES` | `60` | Demo token lifetime |
+| `WEB_PUBSUB_CONNECTION_STRING` | empty | Enables Azure Web PubSub publishing when supplied |
+| `WEB_PUBSUB_HUB` | `chat` | Azure Web PubSub hub |
+| `COSMOS_ENDPOINT` | empty | Cosmos DB account endpoint |
+| `COSMOS_KEY` | empty | Cosmos DB account key |
+| `COSMOS_DATABASE` | `chatPrototype` | Cosmos DB database name |
+| `COSMOS_EVENTS_CONTAINER` | `events` | Authoritative event log container |
+| `COSMOS_STATE_CONTAINER` | `state` | Projection/read-model container |
+| `VITE_API_BASE_URL` | `http://localhost:8080/api` | Frontend API base URL |
+
+## What Gets Deployed
+
+1. Azure Web PubSub for room-scoped realtime delivery.
+2. Azure Cosmos DB for the event log and state/projection containers.
+3. Application Insights for baseline observability.
+
+## Current Pass 1 Status
+
+- Backend contracts are tenant-aware and thread-oriented while preserving room compatibility for the current UI slice.
+- Demo bearer-token issuance and verification are wired into the backend API, with temporary header fallback kept for local migration.
+- The frontend performs demo login before loading rooms and negotiating realtime access.
+- Validation now includes backend unit tests, repo typecheck, Playwright smoke coverage, and local/live harness scaffolding.
+
+Architecture details live in [HOW_IT_WORKS.md](/workspaces/custom-azure-chat-service/HOW_IT_WORKS.md) and [docs/architecture.md](/workspaces/custom-azure-chat-service/docs/architecture.md).

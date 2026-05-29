@@ -1,0 +1,33 @@
+node_modules/
+dist/
+.env
+.env.*
+apps/backend/.env
+apps/frontend/.env
+playwright-report/
+test-results/
+
+# dependencies
+node_modules/
+
+# build outputs
+dist/
+coverage/
+
+# env and local state
+.env
+.env.*
+*.local
+
+# logs
+*.log
+logs/
+
+# editor
+.vscode/*
+!.vscode/extensions.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# azd
+.azure/

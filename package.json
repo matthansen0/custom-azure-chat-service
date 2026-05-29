@@ -1,0 +1,20 @@
+{
+  "name": "custom-azure-chat-service",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace @chat/backend\" \"npm run dev --workspace @chat/frontend\"",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspace @chat/backend",
+    "test:e2e": "playwright test",
+    "typecheck": "npm run typecheck --workspaces"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.53.0",
+    "concurrently": "^9.2.0",
+    "typescript": "^5.8.3"
+  }
+}

@@ -1,0 +1,12 @@
+name: custom-azure-chat-service
+metadata:
+  template: custom-azure-chat-service@0.1.0
+infra:
+  provider: bicep
+  path: infra
+hooks:
+  preprovision:
+    posix:
+      shell: sh
+      run: |
+        bash scripts/validate.sh --static

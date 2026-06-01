@@ -12,6 +12,7 @@ services:
     docker:
       path: ./Dockerfile
       context: ../../
+      remoteBuild: true
   frontend:
     project: ./apps/frontend
     language: js
@@ -19,6 +20,7 @@ services:
     docker:
       path: ./Dockerfile
       context: ../../
+      remoteBuild: true
 hooks:
   preprovision:
     posix:

@@ -1,10 +1,9 @@
 param location string
-param prefix string
+param accountName string
 param databaseName string
 param useServerless bool
 param tags object
 
-var accountName = toLower('${prefix}cosmos')
 var eventsContainerName = 'events'
 var stateContainerName = 'state'
 

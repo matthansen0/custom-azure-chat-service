@@ -1,10 +1,10 @@
 param location string
-param prefix string
+param serviceName string
 param skuName string
 param tags object
 
 resource service 'Microsoft.SignalRService/WebPubSub@2024-03-01' = {
-  name: '${prefix}-wps'
+  name: serviceName
   location: location
   sku: {
     name: skuName

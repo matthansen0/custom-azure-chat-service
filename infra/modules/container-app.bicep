@@ -22,7 +22,7 @@ var plainEnvironmentVariables = [for entry in env: {
 }]
 
 var secretEnvironmentVariables = [for secret in secretEnv: {
-  name: secret.name
+  name: contains(secret, 'envName') ? secret.envName : secret.name
   secretRef: secret.name
 }]
 

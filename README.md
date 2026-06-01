@@ -29,7 +29,7 @@ azd auth login --use-device-code
 azd up
 ```
 
-`azd up` provisions the Azure resources from Bicep, then runs `scripts/azd-postprovision.sh` to build and push the backend/frontend images to ACR and update the Container Apps.
+`azd up` provisions the Azure resources from Bicep, then runs `scripts/azd-postprovision.sh` to build and push the backend/frontend images to ACR and update the Container Apps. The repo is configured with Azure-side remote builds, so local Docker or Podman is not required in the dev container.
 
 Cleanup:
 

@@ -1,0 +1,15 @@
+.git
+.github
+.devcontainer
+.azure
+node_modules
+**/node_modules
+dist
+build
+coverage
+test-results
+playwright-report
+media
+*.log
+apps/backend/.env
+apps/frontend/.env

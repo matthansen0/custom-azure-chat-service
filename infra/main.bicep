@@ -37,11 +37,15 @@ var tags = {
   environment: 'demo'
 }
 
+var globalNameSuffix = take(uniqueString(subscription().subscriptionId, resourceGroup().id), 6)
+var globalNameStem = take(toLower('${replace(prefix, '-', '')}${globalNameSuffix}'), 18)
+var bootstrapImage = 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+
 var backendAppName = '${prefix}-backend'
 var frontendAppName = '${prefix}-frontend'
 
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
-  name: '${prefix}acr'
+  name: take('${globalNameStem}acr', 50)
   location: location
   sku: {
     name: containerRegistrySku
@@ -66,7 +70,7 @@ module webpubsub 'modules/webpubsub.bicep' = {
   name: 'webpubsub'
   params: {
     location: location
-    prefix: prefix
+    serviceName: take('${globalNameStem}wps', 50)
     skuName: webPubSubSkuName
     tags: tags
   }
@@ -76,7 +80,7 @@ module cosmos 'modules/cosmosdb.bicep' = {
   name: 'cosmosdb'
   params: {
     location: location
-    prefix: prefix
+    accountName: take('${globalNameStem}cosmos', 44)
     databaseName: cosmosDatabaseName
     useServerless: useCosmosServerless
     tags: tags
@@ -100,8 +104,8 @@ module backendApp 'modules/container-app.bicep' = {
     location: location
     name: backendAppName
     environmentId: appEnvironment.outputs.environmentId
-    imageName: '${containerRegistry.properties.loginServer}/backend:bootstrap'
-    targetPort: 8080
+    imageName: bootstrapImage
+    targetPort: 80
     external: true
     cpu: backendCpu
     memory: backendMemory
@@ -146,26 +150,29 @@ module backendApp 'modules/container-app.bicep' = {
     ]
     secretEnv: [
       {
-        name: 'COSMOS_KEY'
+        name: 'cosmos-key'
+        envName: 'COSMOS_KEY'
         secretValue: cosmos.outputs.primaryKey
       }
       {
-        name: 'WEB_PUBSUB_CONNECTION_STRING'
+        name: 'web-pubsub-connection-string'
+        envName: 'WEB_PUBSUB_CONNECTION_STRING'
         secretValue: webpubsub.outputs.connectionString
       }
       {
-        name: 'DEMO_AUTH_SECRET'
+        name: 'demo-auth-secret'
+        envName: 'DEMO_AUTH_SECRET'
         secretValue: '${prefix}-demo-auth-secret'
       }
       {
-        name: 'ACR_PASSWORD'
+        name: 'acr-password'
         secretValue: listCredentials(containerRegistry.id, containerRegistry.apiVersion).passwords[0].value
       }
     ]
     registryIdentity: {
       server: containerRegistry.properties.loginServer
       username: listCredentials(containerRegistry.id, containerRegistry.apiVersion).username
-      passwordSecretRef: 'ACR_PASSWORD'
+      passwordSecretRef: 'acr-password'
     }
   }
 }
@@ -176,7 +183,7 @@ module frontendApp 'modules/container-app.bicep' = {
     location: location
     name: frontendAppName
     environmentId: appEnvironment.outputs.environmentId
-    imageName: '${containerRegistry.properties.loginServer}/frontend:bootstrap'
+    imageName: bootstrapImage
     targetPort: 80
     external: true
     cpu: frontendCpu
@@ -190,14 +197,14 @@ module frontendApp 'modules/container-app.bicep' = {
     ]
     secretEnv: [
       {
-        name: 'ACR_PASSWORD'
+        name: 'acr-password'
         secretValue: listCredentials(containerRegistry.id, containerRegistry.apiVersion).passwords[0].value
       }
     ]
     registryIdentity: {
       server: containerRegistry.properties.loginServer
       username: listCredentials(containerRegistry.id, containerRegistry.apiVersion).username
-      passwordSecretRef: 'ACR_PASSWORD'
+      passwordSecretRef: 'acr-password'
     }
   }
 }

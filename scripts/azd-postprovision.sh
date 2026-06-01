@@ -20,7 +20,7 @@ az acr build \
 az acr build \
   --registry "$AZURE_CONTAINER_REGISTRY_NAME" \
   --image "${frontend_image#${AZURE_CONTAINER_REGISTRY_LOGIN_SERVER}/}" \
-  --build-arg "VITE_API_BASE_URL=${BACKENDURL}/api" \
+  --build-arg "VITE_API_BASE_URL=${BACKEND_URL}/api" \
   --file apps/frontend/Dockerfile \
   .
 
@@ -29,6 +29,12 @@ az containerapp update \
   --resource-group "$AZURE_RESOURCE_GROUP" \
   --image "$backend_image" \
   --set-env-vars "CORS_ORIGIN=${FRONTEND_URL}"
+
+az containerapp ingress update \
+  --name "$AZURE_BACKEND_CONTAINER_APP_NAME" \
+  --resource-group "$AZURE_RESOURCE_GROUP" \
+  --target-port 8080 \
+  --type external
 
 az containerapp update \
   --name "$AZURE_FRONTEND_CONTAINER_APP_NAME" \

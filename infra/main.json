@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.43.8.12551",
-      "templateHash": "8865998500150309969"
+      "templateHash": "8651433976144856438"
     }
   },
   "parameters": {
@@ -87,6 +87,9 @@
       "workload": "event-chat-prototype",
       "environment": "demo"
     },
+    "globalNameSuffix": "[take(uniqueString(subscription().subscriptionId, resourceGroup().id), 6)]",
+    "globalNameStem": "[take(toLower(format('{0}{1}', replace(parameters('prefix'), '-', ''), variables('globalNameSuffix'))), 18)]",
+    "bootstrapImage": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
     "backendAppName": "[format('{0}-backend', parameters('prefix'))]",
     "frontendAppName": "[format('{0}-frontend', parameters('prefix'))]"
   },
@@ -94,7 +97,7 @@
     {
       "type": "Microsoft.ContainerRegistry/registries",
       "apiVersion": "2023-07-01",
-      "name": "[format('{0}acr', parameters('prefix'))]",
+      "name": "[take(format('{0}acr', variables('globalNameStem')), 50)]",
       "location": "[parameters('location')]",
       "sku": {
         "name": "[parameters('containerRegistrySku')]"
@@ -210,8 +213,8 @@
           "location": {
             "value": "[parameters('location')]"
           },
-          "prefix": {
-            "value": "[parameters('prefix')]"
+          "serviceName": {
+            "value": "[take(format('{0}wps', variables('globalNameStem')), 50)]"
           },
           "skuName": {
             "value": "[parameters('webPubSubSkuName')]"
@@ -227,14 +230,14 @@
             "_generator": {
               "name": "bicep",
               "version": "0.43.8.12551",
-              "templateHash": "16977423819595106437"
+              "templateHash": "13730291948379727970"
             }
           },
           "parameters": {
             "location": {
               "type": "string"
             },
-            "prefix": {
+            "serviceName": {
               "type": "string"
             },
             "skuName": {
@@ -248,7 +251,7 @@
             {
               "type": "Microsoft.SignalRService/webPubSub",
               "apiVersion": "2024-03-01",
-              "name": "[format('{0}-wps', parameters('prefix'))]",
+              "name": "[parameters('serviceName')]",
               "location": "[parameters('location')]",
               "sku": {
                 "name": "[parameters('skuName')]",
@@ -277,15 +280,15 @@
           "outputs": {
             "serviceName": {
               "type": "string",
-              "value": "[format('{0}-wps', parameters('prefix'))]"
+              "value": "[parameters('serviceName')]"
             },
             "endpoint": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.SignalRService/webPubSub', format('{0}-wps', parameters('prefix'))), '2024-03-01').hostName]"
+              "value": "[reference(resourceId('Microsoft.SignalRService/webPubSub', parameters('serviceName')), '2024-03-01').hostName]"
             },
             "connectionString": {
               "type": "string",
-              "value": "[listKeys(resourceId('Microsoft.SignalRService/webPubSub', format('{0}-wps', parameters('prefix'))), '2024-03-01').primaryConnectionString]"
+              "value": "[listKeys(resourceId('Microsoft.SignalRService/webPubSub', parameters('serviceName')), '2024-03-01').primaryConnectionString]"
             }
           }
         }
@@ -304,8 +307,8 @@
           "location": {
             "value": "[parameters('location')]"
           },
-          "prefix": {
-            "value": "[parameters('prefix')]"
+          "accountName": {
+            "value": "[take(format('{0}cosmos', variables('globalNameStem')), 44)]"
           },
           "databaseName": {
             "value": "[parameters('cosmosDatabaseName')]"
@@ -324,14 +327,14 @@
             "_generator": {
               "name": "bicep",
               "version": "0.43.8.12551",
-              "templateHash": "8261164063599309768"
+              "templateHash": "6938037480308815547"
             }
           },
           "parameters": {
             "location": {
               "type": "string"
             },
-            "prefix": {
+            "accountName": {
               "type": "string"
             },
             "databaseName": {
@@ -345,7 +348,6 @@
             }
           },
           "variables": {
-            "accountName": "[toLower(format('{0}cosmos', parameters('prefix')))]",
             "eventsContainerName": "events",
             "stateContainerName": "state"
           },
@@ -353,7 +355,7 @@
             {
               "type": "Microsoft.DocumentDB/databaseAccounts",
               "apiVersion": "2024-05-15",
-              "name": "[variables('accountName')]",
+              "name": "[parameters('accountName')]",
               "location": "[parameters('location')]",
               "kind": "GlobalDocumentDB",
               "tags": "[parameters('tags')]",
@@ -378,20 +380,20 @@
             {
               "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases",
               "apiVersion": "2024-05-15",
-              "name": "[format('{0}/{1}', variables('accountName'), parameters('databaseName'))]",
+              "name": "[format('{0}/{1}', parameters('accountName'), parameters('databaseName'))]",
               "properties": {
                 "resource": {
                   "id": "[parameters('databaseName')]"
                 }
               },
               "dependsOn": [
-                "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('accountName'))]"
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('accountName'))]"
               ]
             },
             {
               "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers",
               "apiVersion": "2024-05-15",
-              "name": "[format('{0}/{1}/{2}', variables('accountName'), parameters('databaseName'), variables('eventsContainerName'))]",
+              "name": "[format('{0}/{1}/{2}', parameters('accountName'), parameters('databaseName'), variables('eventsContainerName'))]",
               "properties": {
                 "resource": {
                   "id": "[variables('eventsContainerName')]",
@@ -418,13 +420,13 @@
                 }
               },
               "dependsOn": [
-                "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', variables('accountName'), parameters('databaseName'))]"
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', parameters('accountName'), parameters('databaseName'))]"
               ]
             },
             {
               "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers",
               "apiVersion": "2024-05-15",
-              "name": "[format('{0}/{1}/{2}', variables('accountName'), parameters('databaseName'), variables('stateContainerName'))]",
+              "name": "[format('{0}/{1}/{2}', parameters('accountName'), parameters('databaseName'), variables('stateContainerName'))]",
               "properties": {
                 "resource": {
                   "id": "[variables('stateContainerName')]",
@@ -446,22 +448,22 @@
                 }
               },
               "dependsOn": [
-                "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', variables('accountName'), parameters('databaseName'))]"
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', parameters('accountName'), parameters('databaseName'))]"
               ]
             }
           ],
           "outputs": {
             "accountName": {
               "type": "string",
-              "value": "[variables('accountName')]"
+              "value": "[parameters('accountName')]"
             },
             "endpoint": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('accountName')), '2024-05-15').documentEndpoint]"
+              "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('accountName')), '2024-05-15').documentEndpoint]"
             },
             "primaryKey": {
               "type": "string",
-              "value": "[listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('accountName')), '2024-05-15').primaryMasterKey]"
+              "value": "[listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('accountName')), '2024-05-15').primaryMasterKey]"
             },
             "databaseName": {
               "type": "string",
@@ -587,10 +589,10 @@
             "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-environment'), '2025-04-01').outputs.environmentId.value]"
           },
           "imageName": {
-            "value": "[format('{0}/backend:bootstrap', reference(resourceId('Microsoft.ContainerRegistry/registries', format('{0}acr', parameters('prefix'))), '2023-07-01').loginServer)]"
+            "value": "[variables('bootstrapImage')]"
           },
           "targetPort": {
-            "value": 8080
+            "value": 80
           },
           "external": {
             "value": true
@@ -647,28 +649,31 @@
           "secretEnv": {
             "value": [
               {
-                "name": "COSMOS_KEY",
+                "name": "cosmos-key",
+                "envName": "COSMOS_KEY",
                 "secretValue": "[reference(resourceId('Microsoft.Resources/deployments', 'cosmosdb'), '2025-04-01').outputs.primaryKey.value]"
               },
               {
-                "name": "WEB_PUBSUB_CONNECTION_STRING",
+                "name": "web-pubsub-connection-string",
+                "envName": "WEB_PUBSUB_CONNECTION_STRING",
                 "secretValue": "[reference(resourceId('Microsoft.Resources/deployments', 'webpubsub'), '2025-04-01').outputs.connectionString.value]"
               },
               {
-                "name": "DEMO_AUTH_SECRET",
+                "name": "demo-auth-secret",
+                "envName": "DEMO_AUTH_SECRET",
                 "secretValue": "[format('{0}-demo-auth-secret', parameters('prefix'))]"
               },
               {
-                "name": "ACR_PASSWORD",
-                "secretValue": "[listCredentials(resourceId('Microsoft.ContainerRegistry/registries', format('{0}acr', parameters('prefix'))), '2023-07-01').passwords[0].value]"
+                "name": "acr-password",
+                "secretValue": "[listCredentials(resourceId('Microsoft.ContainerRegistry/registries', take(format('{0}acr', variables('globalNameStem')), 50)), '2023-07-01').passwords[0].value]"
               }
             ]
           },
           "registryIdentity": {
             "value": {
-              "server": "[reference(resourceId('Microsoft.ContainerRegistry/registries', format('{0}acr', parameters('prefix'))), '2023-07-01').loginServer]",
-              "username": "[listCredentials(resourceId('Microsoft.ContainerRegistry/registries', format('{0}acr', parameters('prefix'))), '2023-07-01').username]",
-              "passwordSecretRef": "ACR_PASSWORD"
+              "server": "[reference(resourceId('Microsoft.ContainerRegistry/registries', take(format('{0}acr', variables('globalNameStem')), 50)), '2023-07-01').loginServer]",
+              "username": "[listCredentials(resourceId('Microsoft.ContainerRegistry/registries', take(format('{0}acr', variables('globalNameStem')), 50)), '2023-07-01').username]",
+              "passwordSecretRef": "acr-password"
             }
           }
         },
@@ -679,7 +684,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.43.8.12551",
-              "templateHash": "8035089490609884081"
+              "templateHash": "18245203547807616263"
             }
           },
           "parameters": {
@@ -744,7 +749,7 @@
                 "name": "secretEnvironmentVariables",
                 "count": "[length(parameters('secretEnv'))]",
                 "input": {
-                  "name": "[parameters('secretEnv')[copyIndex('secretEnvironmentVariables')].name]",
+                  "name": "[if(contains(parameters('secretEnv')[copyIndex('secretEnvironmentVariables')], 'envName'), parameters('secretEnv')[copyIndex('secretEnvironmentVariables')].envName, parameters('secretEnv')[copyIndex('secretEnvironmentVariables')].name)]",
                   "secretRef": "[parameters('secretEnv')[copyIndex('secretEnvironmentVariables')].name]"
                 }
               }
@@ -810,7 +815,7 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.Resources/deployments', 'container-environment')]",
-        "[resourceId('Microsoft.ContainerRegistry/registries', format('{0}acr', parameters('prefix')))]",
+        "[resourceId('Microsoft.ContainerRegistry/registries', take(format('{0}acr', variables('globalNameStem')), 50))]",
         "[resourceId('Microsoft.Resources/deployments', 'cosmosdb')]",
         "[resourceId('Microsoft.Resources/deployments', 'webpubsub')]"
       ]
@@ -835,7 +840,7 @@
             "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-environment'), '2025-04-01').outputs.environmentId.value]"
           },
           "imageName": {
-            "value": "[format('{0}/frontend:bootstrap', reference(resourceId('Microsoft.ContainerRegistry/registries', format('{0}acr', parameters('prefix'))), '2023-07-01').loginServer)]"
+            "value": "[variables('bootstrapImage')]"
           },
           "targetPort": {
             "value": 80
@@ -863,16 +868,16 @@
           "secretEnv": {
             "value": [
               {
-                "name": "ACR_PASSWORD",
-                "secretValue": "[listCredentials(resourceId('Microsoft.ContainerRegistry/registries', format('{0}acr', parameters('prefix'))), '2023-07-01').passwords[0].value]"
+                "name": "acr-password",
+                "secretValue": "[listCredentials(resourceId('Microsoft.ContainerRegistry/registries', take(format('{0}acr', variables('globalNameStem')), 50)), '2023-07-01').passwords[0].value]"
               }
             ]
           },
           "registryIdentity": {
             "value": {
-              "server": "[reference(resourceId('Microsoft.ContainerRegistry/registries', format('{0}acr', parameters('prefix'))), '2023-07-01').loginServer]",
-              "username": "[listCredentials(resourceId('Microsoft.ContainerRegistry/registries', format('{0}acr', parameters('prefix'))), '2023-07-01').username]",
-              "passwordSecretRef": "ACR_PASSWORD"
+              "server": "[reference(resourceId('Microsoft.ContainerRegistry/registries', take(format('{0}acr', variables('globalNameStem')), 50)), '2023-07-01').loginServer]",
+              "username": "[listCredentials(resourceId('Microsoft.ContainerRegistry/registries', take(format('{0}acr', variables('globalNameStem')), 50)), '2023-07-01').username]",
+              "passwordSecretRef": "acr-password"
             }
           }
         },
@@ -883,7 +888,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.43.8.12551",
-              "templateHash": "8035089490609884081"
+              "templateHash": "18245203547807616263"
             }
           },
           "parameters": {
@@ -948,7 +953,7 @@
                 "name": "secretEnvironmentVariables",
                 "count": "[length(parameters('secretEnv'))]",
                 "input": {
-                  "name": "[parameters('secretEnv')[copyIndex('secretEnvironmentVariables')].name]",
+                  "name": "[if(contains(parameters('secretEnv')[copyIndex('secretEnvironmentVariables')], 'envName'), parameters('secretEnv')[copyIndex('secretEnvironmentVariables')].envName, parameters('secretEnv')[copyIndex('secretEnvironmentVariables')].name)]",
                   "secretRef": "[parameters('secretEnv')[copyIndex('secretEnvironmentVariables')].name]"
                 }
               }
@@ -1014,7 +1019,7 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.Resources/deployments', 'container-environment')]",
-        "[resourceId('Microsoft.ContainerRegistry/registries', format('{0}acr', parameters('prefix')))]"
+        "[resourceId('Microsoft.ContainerRegistry/registries', take(format('{0}acr', variables('globalNameStem')), 50))]"
       ]
     }
   ],
@@ -1057,11 +1062,11 @@
     },
     "AZURE_CONTAINER_REGISTRY_NAME": {
       "type": "string",
-      "value": "[format('{0}acr', parameters('prefix'))]"
+      "value": "[take(format('{0}acr', variables('globalNameStem')), 50)]"
     },
     "AZURE_CONTAINER_REGISTRY_LOGIN_SERVER": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.ContainerRegistry/registries', format('{0}acr', parameters('prefix'))), '2023-07-01').loginServer]"
+      "value": "[reference(resourceId('Microsoft.ContainerRegistry/registries', take(format('{0}acr', variables('globalNameStem')), 50)), '2023-07-01').loginServer]"
     },
     "AZURE_BACKEND_CONTAINER_APP_NAME": {
       "type": "string",

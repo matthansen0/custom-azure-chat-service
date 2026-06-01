@@ -1,0 +1,7 @@
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
+import { ChatListItem } from "./ChatListItem.js";
+export function ChatList({ rooms, activeRoomId, userId, onSelectRoom, onNewChat }) {
+    const pinned = rooms.filter((r) => r.pinnedByUserIds?.includes(userId));
+    const unpinned = rooms.filter((r) => !r.pinnedByUserIds?.includes(userId));
+    return (_jsxs("div", { className: "chat-list", children: [_jsxs("div", { className: "chat-list__header", children: [_jsx("h2", { className: "chat-list__title", children: "Chat" }), _jsx("button", { className: "chat-list__new-btn", onClick: onNewChat, title: "New chat", children: "\u270F\uFE0F" })] }), _jsx("div", { className: "chat-list__search", children: _jsx("input", { type: "text", placeholder: "Search conversations...", className: "chat-list__search-input", readOnly: true }) }), _jsxs("div", { className: "chat-list__items", children: [pinned.length > 0 && (_jsxs(_Fragment, { children: [_jsx("div", { className: "chat-list__section-label", children: "Pinned" }), pinned.map((room) => (_jsx(ChatListItem, { room: room, userId: userId, isActive: room.id === activeRoomId, onSelect: () => onSelectRoom(room.id) }, room.id)))] })), unpinned.length > 0 && (_jsxs(_Fragment, { children: [pinned.length > 0 && _jsx("div", { className: "chat-list__section-label", children: "Recent" }), unpinned.map((room) => (_jsx(ChatListItem, { room: room, userId: userId, isActive: room.id === activeRoomId, onSelect: () => onSelectRoom(room.id) }, room.id)))] }))] })] }));
+}

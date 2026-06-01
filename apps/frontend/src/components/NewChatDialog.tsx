@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Room } from "../types.js";
 
 interface NewChatDialogProps {
+  currentUserId: string;
   onClose: () => void;
   onCreate: (name: string, type: Room["type"], participantIds: string[]) => Promise<void>;
 }
@@ -12,10 +13,13 @@ const availableUsers = [
   { id: "u3", name: "Sam" }
 ];
 
-export function NewChatDialog({ onClose, onCreate }: NewChatDialogProps) {
+export function NewChatDialog({ currentUserId, onClose, onCreate }: NewChatDialogProps) {
   const [name, setName] = useState("");
   const [type, setType] = useState<Room["type"]>("group");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isCreating, setIsCreating] = useState(false);
+
+  const otherUsers = availableUsers.filter((u) => u.id !== currentUserId);
 
   const toggleUser = (id: string) => {
     setSelectedIds((prev) =>
@@ -24,9 +28,15 @@ export function NewChatDialog({ onClose, onCreate }: NewChatDialogProps) {
   };
 
   const handleCreate = async () => {
-    if (!name.trim() || selectedIds.length === 0) return;
-    await onCreate(name, type, selectedIds);
-    onClose();
+    if (!name.trim() || selectedIds.length === 0 || isCreating) return;
+    setIsCreating(true);
+    try {
+      const allParticipants = Array.from(new Set([currentUserId, ...selectedIds]));
+      await onCreate(name, type, allParticipants);
+      onClose();
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
@@ -60,7 +70,7 @@ export function NewChatDialog({ onClose, onCreate }: NewChatDialogProps) {
           <div className="dialog__label">
             Add people
             <div className="dialog__user-list">
-              {availableUsers.map((u) => (
+              {otherUsers.map((u) => (
                 <label key={u.id} className="dialog__user-option">
                   <input
                     type="checkbox"
@@ -77,10 +87,10 @@ export function NewChatDialog({ onClose, onCreate }: NewChatDialogProps) {
           <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
           <button
             className="btn btn-primary"
-            onClick={handleCreate}
-            disabled={!name.trim() || selectedIds.length === 0}
+            onClick={() => void handleCreate()}
+            disabled={!name.trim() || selectedIds.length === 0 || isCreating}
           >
-            Create
+            {isCreating ? "Creating..." : "Create"}
           </button>
         </div>
       </div>

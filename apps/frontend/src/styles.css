@@ -1101,12 +1101,196 @@ body {
   color: #64748b;
 }
 
+/* Teams View */
+.teams-view,
+.activity-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.teams-view__header,
+.activity-view__header {
+  padding: 16px 16px 8px;
+}
+
+.teams-view__title,
+.activity-view__title {
+  color: var(--teams-sidebar-text);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.teams-view__content,
+.activity-view__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 12px 12px;
+}
+
+.teams-view__section,
+.activity-view__section {
+  margin-bottom: 16px;
+}
+
+.teams-view__section-label,
+.activity-view__section-label {
+  color: var(--teams-text-tertiary);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 4px;
+}
+
+.teams-view__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.teams-view__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--teams-sidebar-hover);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.teams-view__card:hover {
+  background: var(--teams-sidebar-active);
+}
+
+.teams-view__card-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: var(--teams-purple);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.teams-view__card-avatar.announcement {
+  background: #4a4a8a;
+  font-size: 20px;
+}
+
+.teams-view__card-name {
+  color: var(--teams-sidebar-text);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.teams-view__card-meta {
+  color: var(--teams-text-tertiary);
+  font-size: 11px;
+}
+
+.teams-view__empty,
+.activity-view__empty {
+  color: var(--teams-text-tertiary);
+  font-size: 13px;
+  padding: 16px;
+  text-align: center;
+}
+
+/* Activity View */
+.activity-view__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s;
+}
+
+.activity-view__item:hover {
+  background: var(--teams-sidebar-hover);
+}
+
+.activity-view__item-avatar {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  background: var(--teams-purple);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.activity-view__item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-view__item-name {
+  color: var(--teams-sidebar-text);
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.activity-view__item-preview {
+  color: #9e9e9e;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.activity-view__item-badge {
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  background: var(--teams-badge);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+}
+
+.activity-view__item-time {
+  color: var(--teams-text-tertiary);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* Responsive */
 @media (max-width: 1100px) {
-  .layout {
-    grid-template-columns: 220px 1fr;
+  .teams-layout {
+    grid-template-columns: 68px 260px 1fr;
   }
 
-  .membersPane {
+  .teams-detail {
     display: none;
   }
 }

@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
 import { ActivityBar } from "./components/ActivityBar.js";
+import { ActivityView } from "./components/ActivityView.js";
 import { ChatList } from "./components/ChatList.js";
 import { ConversationView } from "./components/ConversationView.js";
 import { MembersPanel } from "./components/MembersPanel.js";
 import { NewChatDialog } from "./components/NewChatDialog.js";
+import { TeamsView } from "./components/TeamsView.js";
 import { UserSwitcher } from "./components/UserSwitcher.js";
 import { useChat } from "./hooks/useChat.js";
 
@@ -21,6 +23,11 @@ export function App() {
     [chat.typingByUser, chat.userId]
   );
 
+  const handleNavSelectRoom = (roomId: string) => {
+    chat.selectRoom(roomId);
+    setActiveNav("chat");
+  };
+
   return (
     <div className="teams-layout">
       <ActivityBar
@@ -31,13 +38,29 @@ export function App() {
 
       <div className="teams-sidebar">
         <UserSwitcher userId={chat.userId} onSwitch={(id) => void chat.switchUser(id)} />
-        <ChatList
-          rooms={chat.rooms}
-          activeRoomId={chat.activeRoomId}
-          userId={chat.userId}
-          onSelectRoom={chat.selectRoom}
-          onNewChat={() => setShowNewChat(true)}
-        />
+        {activeNav === "chat" && (
+          <ChatList
+            rooms={chat.rooms}
+            activeRoomId={chat.activeRoomId}
+            userId={chat.userId}
+            onSelectRoom={chat.selectRoom}
+            onNewChat={() => setShowNewChat(true)}
+          />
+        )}
+        {activeNav === "teams" && (
+          <TeamsView
+            rooms={chat.rooms}
+            userId={chat.userId}
+            onSelectRoom={handleNavSelectRoom}
+          />
+        )}
+        {activeNav === "activity" && (
+          <ActivityView
+            rooms={chat.rooms}
+            userId={chat.userId}
+            onSelectRoom={handleNavSelectRoom}
+          />
+        )}
       </div>
 
       <div className="teams-main">
@@ -76,6 +99,7 @@ export function App() {
 
       {showNewChat && (
         <NewChatDialog
+          currentUserId={chat.userId}
           onClose={() => setShowNewChat(false)}
           onCreate={chat.newRoom}
         />

@@ -110,6 +110,7 @@ module backendApp 'modules/container-app.bicep' = {
     cpu: backendCpu
     memory: backendMemory
     tags: tags
+    serviceName: 'backend'
     env: [
       {
         name: 'PORT'
@@ -189,6 +190,7 @@ module frontendApp 'modules/container-app.bicep' = {
     cpu: frontendCpu
     memory: frontendMemory
     tags: tags
+    serviceName: 'frontend'
     env: [
       {
         name: 'VITE_API_BASE_URL'
@@ -220,6 +222,7 @@ output COSMOS_EVENTS_CONTAINER string = cosmos.outputs.eventsContainerName
 output COSMOS_STATE_CONTAINER string = cosmos.outputs.stateContainerName
 output AZURE_CONTAINER_REGISTRY_NAME string = containerRegistry.name
 output AZURE_CONTAINER_REGISTRY_LOGIN_SERVER string = containerRegistry.properties.loginServer
+output AZURE_CONTAINER_REGISTRY_ENDPOINT string = containerRegistry.properties.loginServer
 output AZURE_BACKEND_CONTAINER_APP_NAME string = backendAppName
 output AZURE_FRONTEND_CONTAINER_APP_NAME string = frontendAppName
 output BACKEND_URL string = backendApp.outputs.fqdn

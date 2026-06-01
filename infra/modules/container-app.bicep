@@ -10,6 +10,7 @@ param tags object
 param env array = []
 param secretEnv array = []
 param registryIdentity object
+param serviceName string = ''
 
 var secrets = [for secret in secretEnv: {
   name: secret.name
@@ -28,10 +29,12 @@ var secretEnvironmentVariables = [for secret in secretEnv: {
 
 var environmentVariables = concat(plainEnvironmentVariables, secretEnvironmentVariables)
 
+var azdTags = serviceName != '' ? { 'azd-service-name': serviceName } : {}
+
 resource containerApp 'Microsoft.App/containerApps@2025-01-01' = {
   name: name
   location: location
-  tags: tags
+  tags: union(tags, azdTags)
   properties: {
     managedEnvironmentId: environmentId
     configuration: {

@@ -3,6 +3,7 @@ import { ActivityBar } from "./components/ActivityBar.js";
 import { ActivityView } from "./components/ActivityView.js";
 import { ChatList } from "./components/ChatList.js";
 import { ConversationView } from "./components/ConversationView.js";
+import { EmergencyOverlay } from "./components/EmergencyOverlay.js";
 import { MembersPanel } from "./components/MembersPanel.js";
 import { NewChatDialog } from "./components/NewChatDialog.js";
 import { TeamsView } from "./components/TeamsView.js";
@@ -59,6 +60,8 @@ export function App() {
             rooms={chat.rooms}
             userId={chat.userId}
             onSelectRoom={handleNavSelectRoom}
+            mentions={chat.mentionFeed}
+            onClearMentions={chat.clearMentions}
           />
         )}
       </div>
@@ -77,6 +80,7 @@ export function App() {
             onDelete={chat.removeMessage}
             onReact={chat.react}
             onUnreact={chat.unreact}
+            onMarkRead={chat.markAsRead}
             onTyping={chat.startTyping}
             onToggleMembers={() => setShowMembers((v) => !v)}
             showMembers={showMembers}
@@ -102,6 +106,22 @@ export function App() {
           currentUserId={chat.userId}
           onClose={() => setShowNewChat(false)}
           onCreate={chat.newRoom}
+        />
+      )}
+
+      {chat.emergencyAlert && (
+        <EmergencyOverlay
+          alert={chat.emergencyAlert}
+          senderName={
+            chat.members.find((m) => m.id === chat.emergencyAlert!.actorUserId)?.displayName ??
+            chat.emergencyAlert.actorUserId
+          }
+          onDismiss={chat.dismissEmergency}
+          onGoToRoom={() => {
+            chat.selectRoom(chat.emergencyAlert!.roomId);
+            setActiveNav("chat");
+            chat.dismissEmergency();
+          }}
         />
       )}
     </div>

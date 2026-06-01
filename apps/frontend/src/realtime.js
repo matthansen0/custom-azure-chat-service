@@ -2,7 +2,7 @@ import { WebPubSubClient } from "@azure/web-pubsub-client";
 import { negotiate } from "./api.js";
 export async function connectRealtime(input) {
     input.onStatus("connecting");
-    const negotiation = await negotiate(input.userId, input.roomId);
+    const negotiation = await negotiate(input.userId);
     if (negotiation.kind === "local") {
         const socket = new WebSocket(negotiation.url);
         socket.addEventListener("open", () => {
@@ -23,16 +23,15 @@ export async function connectRealtime(input) {
         };
     }
     const client = new WebPubSubClient({
-        getClientAccessUrl: async () => (await negotiate(input.userId, input.roomId)).url
+        getClientAccessUrl: async () => (await negotiate(input.userId)).url
     });
-    client.on("connected", async () => {
+    client.on("connected", () => {
         input.onStatus("connected");
-        await client.joinGroup(`room-${input.roomId}`);
     });
     client.on("disconnected", () => {
         input.onStatus("disconnected");
     });
-    client.on("group-message", (event) => {
+    client.on("server-message", (event) => {
         const payload = event.message.data;
         if (payload?.event) {
             input.onEvent(payload.event);
@@ -40,7 +39,6 @@ export async function connectRealtime(input) {
     });
     await client.start();
     return async () => {
-        await client.leaveGroup(`room-${input.roomId}`);
         await client.stop();
         input.onStatus("disconnected");
     };

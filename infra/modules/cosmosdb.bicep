@@ -32,6 +32,9 @@ resource account 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' = {
     publicNetworkAccess: 'Enabled'
     enableAutomaticFailover: false
     minimalTlsVersion: 'Tls12'
+    // Local auth (master/secondary keys) is disabled tenant-wide by Azure Policy.
+    // Data-plane access is granted via SQL RBAC; see modules/cosmos-sql-role-assignment.bicep.
+    disableLocalAuth: true
   }
 }
 
@@ -101,8 +104,8 @@ resource stateContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/cont
 }
 
 output accountName string = account.name
+output accountId string = account.id
 output endpoint string = account.properties.documentEndpoint
-output primaryKey string = listKeys(account.id, account.apiVersion).primaryMasterKey
 output databaseName string = sqlDatabase.name
 output eventsContainerName string = eventsContainer.name
 output stateContainerName string = stateContainer.name

@@ -11,14 +11,13 @@ const users = [
 
 export function UserSwitcher({ userId, onSwitch }: UserSwitcherProps) {
   const current = users.find((u) => u.id === userId);
+  const orgLabel = "Hospital Communications";
 
   return (
     <div className="user-switcher">
       <div className="user-switcher__current">
-        <div className="user-switcher__avatar">
-          {current?.label.charAt(0).toUpperCase() ?? "?"}
-        </div>
-        <span className="user-switcher__name">{current?.label ?? userId}</span>
+        <div className="user-switcher__avatar" aria-hidden="true" />
+        <span className="user-switcher__name">{orgLabel}</span>
       </div>
       <select
         className="user-switcher__select"

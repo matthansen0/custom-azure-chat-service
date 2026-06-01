@@ -1,4 +1,4 @@
-FROM node:22-bookworm-slim AS build
+FROM chatdemows44ktacr.azurecr.io/library/node:22-bookworm-slim AS build
 WORKDIR /workspace
 
 COPY package*.json ./
@@ -12,7 +12,7 @@ COPY apps/backend apps/backend
 
 RUN npm run build --workspace @chat/backend
 
-FROM node:22-bookworm-slim AS runtime
+FROM chatdemows44ktacr.azurecr.io/library/node:22-bookworm-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 

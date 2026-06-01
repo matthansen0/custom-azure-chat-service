@@ -26,8 +26,7 @@ test("LocalRealtimePublisher delivers room events to subscribed clients", async 
 
   const negotiation = await publisher.getClientAccessToken({
     userId: "u1",
-    tenantId: "tenant-demo",
-    roomId: "r-ops"
+    tenantId: "tenant-demo"
   });
 
   const received = new Promise<EventEnvelope>((resolve, reject) => {

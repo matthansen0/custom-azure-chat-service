@@ -1,4 +1,4 @@
-FROM node:22-bookworm-slim AS build
+FROM chatdemows44ktacr.azurecr.io/library/node:22-bookworm-slim AS build
 WORKDIR /workspace
 
 ARG VITE_API_BASE_URL=http://localhost:8080/api
@@ -15,7 +15,7 @@ COPY apps/frontend apps/frontend
 
 RUN npm run build --workspace @chat/frontend
 
-FROM nginx:1.27-alpine AS runtime
+FROM chatdemows44ktacr.azurecr.io/library/nginx:1.27-alpine AS runtime
 COPY apps/frontend/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /workspace/apps/frontend/dist /usr/share/nginx/html
 EXPOSE 80

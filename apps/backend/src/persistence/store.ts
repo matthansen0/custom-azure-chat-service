@@ -1,4 +1,5 @@
 import { CosmosClient, type Container } from "@azure/cosmos";
+import { DefaultAzureCredential } from "@azure/identity";
 import type { EventEnvelope } from "../events/contracts.js";
 import type {
   AuditEvent,
@@ -23,6 +24,7 @@ export interface DataStore {
   rememberIdempotency(key: string, eventId: string): Promise<boolean>;
   appendEvent(event: EventEnvelope): Promise<void>;
   addMessage(message: Message): Promise<void>;
+  getMessage(roomId: string, messageId: string): Promise<Message | null>;
   updateMessage(roomId: string, messageId: string, input: { content?: string; priority?: Message["priority"] }): Promise<Message | null>;
   deleteMessage(roomId: string, messageId: string): Promise<Message | null>;
   markRead(roomId: string, messageId: string, userId: string): Promise<void>;
@@ -38,6 +40,7 @@ export interface DataStore {
   listRooms(userId: string, options?: { includeArchived?: boolean; includeHidden?: boolean }): Promise<Array<Room & { summary: RoomSummary }>>;
   getRoom(userId: string, roomId: string): Promise<(Room & { summary: RoomSummary; preference: ThreadPreference; notificationPreference: NotificationPreference }) | null>;
   hasRoomAccess(userId: string, roomId: string): Promise<boolean>;
+  findRoomById(roomId: string): Promise<Room | null>;
   createRoom(input: {
     id?: string;
     actorUserId: string;
@@ -279,6 +282,11 @@ export class MemoryStore implements DataStore {
     return message;
   }
 
+  async getMessage(roomId: string, messageId: string): Promise<Message | null> {
+    const message = this.state.messages.find((value) => value.roomId === roomId && value.id === messageId);
+    return message ?? null;
+  }
+
   async deleteMessage(roomId: string, messageId: string): Promise<Message | null> {
     const message = this.state.messages.find((value) => value.roomId === roomId && value.id === messageId);
     if (!message) {
@@ -447,6 +455,10 @@ export class MemoryStore implements DataStore {
 
   async hasRoomAccess(userId: string, roomId: string): Promise<boolean> {
     return this.state.rooms.some((value) => value.id === roomId && value.participantIds.includes(userId));
+  }
+
+  async findRoomById(roomId: string): Promise<Room | null> {
+    return this.state.rooms.find((value) => value.id === roomId) ?? null;
   }
 
   async listRooms(
@@ -816,9 +828,14 @@ export class CosmosStore extends MemoryStore {
   private readonly client: CosmosClient;
   private readonly eventsContainer: Container;
 
-  constructor(connection: { endpoint: string; key: string; database: string; eventsContainer: string }) {
+  constructor(connection: { endpoint: string; database: string; eventsContainer: string }) {
     super();
-    this.client = new CosmosClient({ endpoint: connection.endpoint, key: connection.key });
+    // Managed-Identity/Entra auth only. Local keys are disabled at the Cosmos account per
+    // tenant security policy (see hansen-project-styles/preferences/security.md).
+    this.client = new CosmosClient({
+      endpoint: connection.endpoint,
+      aadCredentials: new DefaultAzureCredential()
+    });
     this.eventsContainer = this.client.database(connection.database).container(connection.eventsContainer);
   }
 

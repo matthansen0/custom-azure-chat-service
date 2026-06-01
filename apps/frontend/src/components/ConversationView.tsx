@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { Message, User } from "../types.js";
-import { Composer } from "./Composer.js";
+import { Composer, type ReplyTarget, type SendOptions } from "./Composer.js";
 import { MessageBubble } from "./MessageBubble.js";
 
 interface ConversationViewProps {
@@ -10,11 +10,12 @@ interface ConversationViewProps {
   members: User[];
   userId: string;
   typingUsers: string[];
-  onSend: (content: string) => Promise<void>;
+  onSend: (content: string, options: SendOptions) => Promise<void>;
   onEdit: (messageId: string, content: string) => Promise<void>;
   onDelete: (messageId: string) => Promise<void>;
   onReact: (messageId: string, reaction: string) => Promise<void>;
   onUnreact: (messageId: string, reaction: string) => Promise<void>;
+  onMarkRead: (messageId: string) => Promise<void>;
   onTyping: () => Promise<void>;
   onToggleMembers: () => void;
   showMembers: boolean;
@@ -32,6 +33,7 @@ export function ConversationView({
   onDelete,
   onReact,
   onUnreact,
+  onMarkRead,
   onTyping,
   onToggleMembers,
   showMembers
@@ -39,6 +41,7 @@ export function ConversationView({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
+  const [replyingTo, setReplyingTo] = useState<ReplyTarget | null>(null);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -101,6 +104,7 @@ export function ConversationView({
                 message={msg}
                 userId={userId}
                 senderName={getMemberName(msg.senderId)}
+                members={members}
                 isEditing={editingId === msg.id}
                 editValue={editValue}
                 onEditValueChange={setEditValue}
@@ -110,6 +114,14 @@ export function ConversationView({
                 onDelete={() => onDelete(msg.id)}
                 onReact={(reaction) => onReact(msg.id, reaction)}
                 onUnreact={(reaction) => onUnreact(msg.id, reaction)}
+                onReply={() =>
+                  setReplyingTo({
+                    messageId: msg.id,
+                    senderName: getMemberName(msg.senderId),
+                    content: msg.content
+                  })
+                }
+                onVisible={(id) => void onMarkRead(id)}
               />
             ))}
           </div>
@@ -123,7 +135,17 @@ export function ConversationView({
         </div>
       )}
 
-      <Composer onSend={onSend} onTyping={onTyping} />
+      <Composer
+        onSend={async (content, options) => {
+          await onSend(content, options);
+          setReplyingTo(null);
+        }}
+        onTyping={onTyping}
+        members={members}
+        currentUserId={userId}
+        replyingTo={replyingTo}
+        onCancelReply={() => setReplyingTo(null)}
+      />
     </div>
   );
 }

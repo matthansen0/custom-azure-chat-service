@@ -1,3 +1,4 @@
+import { DefaultAzureCredential } from "@azure/identity";
 import { WebPubSubServiceClient } from "@azure/web-pubsub";
 import type { IncomingMessage, Server as HttpServer } from "node:http";
 import { WebSocketServer, type WebSocket } from "ws";
@@ -12,7 +13,7 @@ export type RealtimeNegotiation = {
 
 export interface RealtimePublisher {
   publish(event: EventEnvelope): Promise<void>;
-  getClientAccessToken(input: { userId: string; tenantId: string; roomId: string }): Promise<RealtimeNegotiation>;
+  getClientAccessToken(input: { userId: string; tenantId: string }): Promise<RealtimeNegotiation>;
 }
 
 export class NoopPublisher implements RealtimePublisher {
@@ -20,14 +21,15 @@ export class NoopPublisher implements RealtimePublisher {
     return;
   }
 
-  async getClientAccessToken(_input: { userId: string; tenantId: string; roomId: string }): Promise<RealtimeNegotiation> {
+  async getClientAccessToken(_input: { userId: string; tenantId: string }): Promise<RealtimeNegotiation> {
     return { kind: "local", url: "" };
   }
 }
 
 export class LocalRealtimePublisher implements RealtimePublisher {
   private readonly webSocketServer = new WebSocketServer({ noServer: true });
-  private readonly connectionsByRoom = new Map<string, Set<WebSocket>>();
+  private readonly connectionsByUser = new Map<string, Set<WebSocket>>();
+  private readonly store: DataStore;
 
   constructor(
     input: {
@@ -37,6 +39,7 @@ export class LocalRealtimePublisher implements RealtimePublisher {
       port: number;
     }
   ) {
+    this.store = input.store;
     input.server.on("upgrade", async (request, socket, head) => {
       const url = this.parseUrl(request);
       if (!url || url.pathname !== "/realtime/socket") {
@@ -44,18 +47,16 @@ export class LocalRealtimePublisher implements RealtimePublisher {
         return;
       }
 
-      const roomId = url.searchParams.get("roomId") ?? "";
       const token = url.searchParams.get("token") ?? "";
       const identity = verifyDemoIdentityToken(token, input.secret);
-      const allowed = identity && roomId ? await input.store.hasRoomAccess(identity.userId, roomId) : false;
-      if (!identity || !allowed) {
+      if (!identity) {
         socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
         socket.destroy();
         return;
       }
 
       this.webSocketServer.handleUpgrade(request, socket, head, (webSocket: WebSocket) => {
-        this.trackConnection(roomId, webSocket);
+        this.trackConnection(identity.userId, webSocket);
       });
     });
 
@@ -69,7 +70,7 @@ export class LocalRealtimePublisher implements RealtimePublisher {
   async publish(event: EventEnvelope): Promise<void> {
     const payload = JSON.stringify({ type: "event", event });
     if (!event.roomId) {
-      for (const sockets of this.connectionsByRoom.values()) {
+      for (const sockets of this.connectionsByUser.values()) {
         for (const socket of sockets) {
           if (socket.readyState === socket.OPEN) {
             socket.send(payload);
@@ -79,14 +80,18 @@ export class LocalRealtimePublisher implements RealtimePublisher {
       return;
     }
 
-    for (const socket of this.connectionsByRoom.get(event.roomId) ?? []) {
-      if (socket.readyState === socket.OPEN) {
-        socket.send(payload);
+    const room = await this.store.findRoomById(event.roomId);
+    const participantIds = room?.participantIds ?? [];
+    for (const userId of participantIds) {
+      for (const socket of this.connectionsByUser.get(userId) ?? []) {
+        if (socket.readyState === socket.OPEN) {
+          socket.send(payload);
+        }
       }
     }
   }
 
-  async getClientAccessToken(input: { userId: string; tenantId: string; roomId: string }): Promise<RealtimeNegotiation> {
+  async getClientAccessToken(input: { userId: string; tenantId: string }): Promise<RealtimeNegotiation> {
     const token = issueDemoIdentityToken({
       tenantId: input.tenantId,
       userId: input.userId,
@@ -97,7 +102,7 @@ export class LocalRealtimePublisher implements RealtimePublisher {
     });
     return {
       kind: "local",
-      url: `ws://127.0.0.1:${this.port}/realtime/socket?roomId=${encodeURIComponent(input.roomId)}&token=${encodeURIComponent(token.token)}`
+      url: `ws://127.0.0.1:${this.port}/realtime/socket?token=${encodeURIComponent(token.token)}`
     };
   }
 
@@ -109,19 +114,19 @@ export class LocalRealtimePublisher implements RealtimePublisher {
     return new URL(request.url, `http://${host}`);
   }
 
-  private trackConnection(roomId: string, socket: WebSocket): void {
-    const current = this.connectionsByRoom.get(roomId) ?? new Set<WebSocket>();
+  private trackConnection(userId: string, socket: WebSocket): void {
+    const current = this.connectionsByUser.get(userId) ?? new Set<WebSocket>();
     current.add(socket);
-    this.connectionsByRoom.set(roomId, current);
+    this.connectionsByUser.set(userId, current);
 
     socket.on("close", () => {
-      const sockets = this.connectionsByRoom.get(roomId);
+      const sockets = this.connectionsByUser.get(userId);
       if (!sockets) {
         return;
       }
       sockets.delete(socket);
       if (sockets.size === 0) {
-        this.connectionsByRoom.delete(roomId);
+        this.connectionsByUser.delete(userId);
       }
     });
   }
@@ -129,23 +134,31 @@ export class LocalRealtimePublisher implements RealtimePublisher {
 
 export class WebPubSubPublisher implements RealtimePublisher {
   private readonly serviceClient: WebPubSubServiceClient;
+  private readonly store: DataStore;
 
-  constructor(connectionString: string, hub: string) {
-    this.serviceClient = new WebPubSubServiceClient(connectionString, hub);
+  constructor(endpoint: string, hub: string, store: DataStore) {
+    // Entra ID via system-assigned managed identity. Local auth (connection string / access
+    // keys) is disabled on the Web PubSub resource per tenant security policy.
+    this.serviceClient = new WebPubSubServiceClient(endpoint, new DefaultAzureCredential(), hub);
+    this.store = store;
   }
 
   async publish(event: EventEnvelope): Promise<void> {
+    const payload = { type: "event", event };
     if (!event.roomId) {
-      await this.serviceClient.sendToAll({ type: "event", event });
+      await this.serviceClient.sendToAll(payload);
       return;
     }
-    await this.serviceClient.group(`room-${event.roomId}`).sendToAll({ type: "event", event });
+    const room = await this.store.findRoomById(event.roomId);
+    const participantIds = room?.participantIds ?? [];
+    await Promise.all(
+      participantIds.map((userId) => this.serviceClient.sendToUser(userId, payload))
+    );
   }
 
-  async getClientAccessToken(input: { userId: string; tenantId: string; roomId: string }): Promise<RealtimeNegotiation> {
+  async getClientAccessToken(input: { userId: string; tenantId: string }): Promise<RealtimeNegotiation> {
     const token = await this.serviceClient.getClientAccessToken({
-      userId: input.userId,
-      roles: ["webpubsub.joinLeaveGroup", "webpubsub.sendToGroup"]
+      userId: input.userId
     });
     return { kind: "webpubsub", url: token.url };
   }

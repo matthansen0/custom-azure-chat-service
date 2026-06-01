@@ -62,6 +62,10 @@ export class ChatCommands {
     actorUserId: string;
     content: string;
     clientMessageId?: string;
+    mentions?: string[];
+    mentionEveryone?: boolean;
+    priority?: "low" | "normal" | "high" | "urgent";
+    replyToMessageId?: string;
     idempotencyKey: string;
   }): Promise<EventEnvelope | null> {
     const messageId = uuidv4();
@@ -73,7 +77,11 @@ export class ChatCommands {
       payload: {
         messageId,
         content: input.content,
-        clientMessageId: input.clientMessageId
+        clientMessageId: input.clientMessageId,
+        mentions: input.mentions ?? [],
+        mentionEveryone: input.mentionEveryone ?? false,
+        priority: input.priority ?? "normal",
+        replyToMessageId: input.replyToMessageId
       },
       idempotencyKey: input.idempotencyKey
     });

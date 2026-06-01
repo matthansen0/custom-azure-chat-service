@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@azure/cosmos": "^4.4.0",
+    "@azure/identity": "^4.13.1",
     "@azure/web-pubsub": "^1.2.0",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",

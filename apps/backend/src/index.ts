@@ -5,10 +5,9 @@ import { LocalRealtimePublisher, WebPubSubPublisher } from "./eventing/publisher
 import { CosmosStore, MemoryStore } from "./persistence/store.js";
 
 const store =
-  config.cosmosEndpoint && config.cosmosKey
+  config.cosmosEndpoint
     ? new CosmosStore({
         endpoint: config.cosmosEndpoint,
-        key: config.cosmosKey,
         database: config.cosmosDatabase,
         eventsContainer: config.cosmosEventsContainer
       })
@@ -18,8 +17,8 @@ await store.ensureSeedData();
 
 const httpServer = createServer();
 
-const publisher = config.webPubSubConnectionString
-  ? new WebPubSubPublisher(config.webPubSubConnectionString, config.webPubSubHub)
+const publisher = config.webPubSubEndpoint
+  ? new WebPubSubPublisher(config.webPubSubEndpoint, config.webPubSubHub, store)
   : new LocalRealtimePublisher({
       server: httpServer,
       store,

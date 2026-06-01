@@ -13,7 +13,9 @@ resource service 'Microsoft.SignalRService/WebPubSub@2024-03-01' = {
   tags: tags
   properties: {
     publicNetworkAccess: 'Enabled'
-    disableLocalAuth: false
+    // Entra ID only. Local auth (connection strings / access keys) is disabled per
+    // tenant security policy. Backend authenticates with DefaultAzureCredential.
+    disableLocalAuth: true
     liveTraceConfiguration: {
       categories: [
         {
@@ -31,5 +33,5 @@ resource service 'Microsoft.SignalRService/WebPubSub@2024-03-01' = {
 }
 
 output serviceName string = service.name
-output endpoint string = service.properties.hostName
-output connectionString string = listKeys(service.id, service.apiVersion).primaryConnectionString
+output serviceId string = service.id
+output endpoint string = 'https://${service.properties.hostName}'

@@ -55,7 +55,28 @@ export function createPersistenceConsumer(store: DataStore) {
           messageId: string;
           content: string;
           clientMessageId?: string;
+          mentions?: string[];
+          mentionEveryone?: boolean;
+          priority?: Message["priority"];
+          replyToMessageId?: string;
         };
+        const mentions = Array.isArray(payload.mentions) ? payload.mentions : [];
+        const mentionEveryone = Boolean(payload.mentionEveryone);
+        const priority: Message["priority"] = payload.priority ?? "normal";
+        const replyToMessageId = typeof payload.replyToMessageId === "string" ? payload.replyToMessageId : undefined;
+        let replyTo: { messageId: string; senderId: string; content: string } | undefined;
+        if (replyToMessageId) {
+          const original = await store.getMessage(event.roomId ?? "", replyToMessageId);
+          if (original) {
+            replyTo = {
+              messageId: original.id,
+              senderId: original.senderId,
+              content: original.content
+            };
+          } else {
+            replyTo = { messageId: replyToMessageId, senderId: "", content: "" };
+          }
+        }
         const message: Message = {
           id: payload.messageId,
           tenantId: event.tenantId,
@@ -65,8 +86,8 @@ export function createPersistenceConsumer(store: DataStore) {
           content: payload.content,
           contentType: "text/plain",
           attachmentRefs: [],
-          metadata: {},
-          priority: "normal",
+          metadata: { mentions, mentionEveryone, ...(replyTo ? { replyTo } : {}) },
+          priority,
           createdUtc: event.occurredUtc,
           deleted: false,
           reactionSummary: {},

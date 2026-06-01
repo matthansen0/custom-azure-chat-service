@@ -92,11 +92,18 @@ export async function getMembers(userId, roomId) {
     const json = (await response.json());
     return json.members;
 }
-export async function sendMessage(userId, roomId, content, clientMessageId) {
+export async function sendMessage(userId, roomId, content, clientMessageId, options) {
     await fetch(`${apiBase}/rooms/${roomId}/messages`, {
         method: "POST",
         headers: headers(userId),
-        body: JSON.stringify({ content, clientMessageId })
+        body: JSON.stringify({
+            content,
+            clientMessageId,
+            mentions: options?.mentions,
+            mentionEveryone: options?.mentionEveryone,
+            priority: options?.priority,
+            replyToMessageId: options?.replyToMessageId
+        })
     });
 }
 export async function updateMessage(userId, roomId, messageId, content) {
@@ -307,9 +314,8 @@ export async function getAuditEvents(userId, filters) {
     const json = (await response.json());
     return json.auditEvents;
 }
-export async function negotiate(userId, roomId) {
+export async function negotiate(userId) {
     const url = new URL(`${apiBase}/realtime/negotiate`, window.location.origin);
-    url.searchParams.set("roomId", roomId);
     const authorizedResponse = await fetch(url.toString(), {
         headers: headers(userId)
     });

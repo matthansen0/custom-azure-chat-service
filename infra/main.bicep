@@ -32,6 +32,9 @@ param frontendCpu string = '0.5'
 @description('Frontend container app memory allocation.')
 param frontendMemory string = '1Gi'
 
+@description('Object id of the user/principal running azd, used to grant data-plane roles for seeding/verification. azd populates AZURE_PRINCIPAL_ID automatically.')
+param deployingUserPrincipalId string = ''
+
 var tags = {
   workload: 'event-chat-prototype'
   environment: 'demo'
@@ -148,18 +151,12 @@ module backendApp 'modules/container-app.bicep' = {
         name: 'WEB_PUBSUB_HUB'
         value: 'chat'
       }
+      {
+        name: 'WEB_PUBSUB_ENDPOINT'
+        value: webpubsub.outputs.endpoint
+      }
     ]
     secretEnv: [
-      {
-        name: 'cosmos-key'
-        envName: 'COSMOS_KEY'
-        secretValue: cosmos.outputs.primaryKey
-      }
-      {
-        name: 'web-pubsub-connection-string'
-        envName: 'WEB_PUBSUB_CONNECTION_STRING'
-        secretValue: webpubsub.outputs.connectionString
-      }
       {
         name: 'demo-auth-secret'
         envName: 'DEMO_AUTH_SECRET'
@@ -175,6 +172,37 @@ module backendApp 'modules/container-app.bicep' = {
       username: listCredentials(containerRegistry.id, containerRegistry.apiVersion).username
       passwordSecretRef: 'acr-password'
     }
+  }
+}
+
+// Cosmos SQL data-plane role for the backend workload identity. Database-level scope per
+// hansen-project-styles/preferences/security.md.
+module cosmosRoleBackend 'modules/cosmos-sql-role-assignment.bicep' = {
+  name: 'cosmos-role-backend'
+  params: {
+    cosmosAccountName: cosmos.outputs.accountName
+    databaseName: cosmos.outputs.databaseName
+    principalId: backendApp.outputs.principalId
+  }
+}
+
+// Same role for the deploying user/principal so azd hooks + local validation can exercise
+// the data plane. Skipped if the caller did not pass an object id (no-key fallback OK).
+module cosmosRoleDeployer 'modules/cosmos-sql-role-assignment.bicep' = if (!empty(deployingUserPrincipalId)) {
+  name: 'cosmos-role-deployer'
+  params: {
+    cosmosAccountName: cosmos.outputs.accountName
+    databaseName: cosmos.outputs.databaseName
+    principalId: deployingUserPrincipalId
+  }
+}
+
+// Web PubSub Service Owner for the backend workload identity (send + auth groups).
+module webPubSubRoleBackend 'modules/webpubsub-role-assignment.bicep' = {
+  name: 'wps-role-backend'
+  params: {
+    webPubSubName: webpubsub.outputs.serviceName
+    principalId: backendApp.outputs.principalId
   }
 }
 
@@ -215,7 +243,6 @@ output APPLICATION_INSIGHTS_CONNECTION_STRING string = monitoring.outputs.applic
 output WEB_PUBSUB_NAME string = webpubsub.outputs.serviceName
 output WEB_PUBSUB_ENDPOINT string = webpubsub.outputs.endpoint
 output AZURE_COSMOS_ACCOUNT_NAME string = cosmos.outputs.accountName
-output COSMOS_PRIMARY_KEY string = cosmos.outputs.primaryKey
 output COSMOS_ENDPOINT string = cosmos.outputs.endpoint
 output COSMOS_DATABASE string = cosmos.outputs.databaseName
 output COSMOS_EVENTS_CONTAINER string = cosmos.outputs.eventsContainerName

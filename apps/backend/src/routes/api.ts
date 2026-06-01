@@ -19,7 +19,11 @@ export function createApiRouter(dependencies: {
 
   const messageSchema = z.object({
     content: z.string().min(1).max(3000),
-    clientMessageId: z.string().optional()
+    clientMessageId: z.string().optional(),
+    mentions: z.array(z.string().min(1)).max(100).optional(),
+    mentionEveryone: z.boolean().optional(),
+    priority: z.enum(["low", "normal", "high", "urgent"]).optional(),
+    replyToMessageId: z.string().min(1).optional()
   });
   const messageUpdateSchema = z.object({
     content: z.string().min(1).max(3000).optional()
@@ -143,12 +147,7 @@ export function createApiRouter(dependencies: {
     if (!identity) {
       return;
     }
-    const roomId = String(request.query.roomId ?? "");
-    if (!roomId || !(await dependencies.store.hasRoomAccess(identity.userId, roomId))) {
-      response.status(403).json({ error: "Forbidden" });
-      return;
-    }
-    response.json(await dependencies.publisher.getClientAccessToken({ userId: identity.userId, tenantId: identity.tenantId, roomId }));
+    response.json(await dependencies.publisher.getClientAccessToken({ userId: identity.userId, tenantId: identity.tenantId }));
   });
 
   router.get("/rooms", async (request, response) => {
@@ -288,6 +287,10 @@ export function createApiRouter(dependencies: {
         actorUserId: identity.userId,
         content: parsed.data.content,
         clientMessageId: parsed.data.clientMessageId,
+        mentions: parsed.data.mentions,
+        mentionEveryone: parsed.data.mentionEveryone,
+        priority: parsed.data.priority,
+        replyToMessageId: parsed.data.replyToMessageId,
         idempotencyKey: String(request.headers["x-idempotency-key"] ?? uuidv4())
       })
     );

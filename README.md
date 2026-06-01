@@ -67,17 +67,13 @@ The repo includes `scripts/azd-postdown.sh`, which waits for the Cosmos DB accou
 
 ## Screenshots
 
-### Chat (User: Alex)
+### Operations Chat
 
-![Chat UI - Alex](media/ui-chat-u1.png)
+![Operations Chat UI](media/ui-operations-chat.png)
 
-### Chat (User: Jordan)
+### Alex And Jordan Chat
 
-![Chat UI - Jordan](media/ui-chat-u2.png)
-
-### Home / Welcome State
-
-![Home UI - Alex](media/ui-home-u1.png)
+![Alex and Jordan Chat UI](media/ui-alex-jordan-chat.png)
 
 ## Current Status
 

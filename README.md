@@ -20,11 +20,11 @@ Azure-native, event-driven chat prototype for a secure multi-tenant SaaS messagi
 
 ## Screenshots
 
-### Operations Chat
+### Group Chat
 
 ![Operations Chat UI](media/ui-operations-chat.png)
 
-### Alex And Jordan Chat
+### Direct Chat
 
 ![Alex and Jordan Chat UI](media/ui-alex-jordan-chat.png)
 

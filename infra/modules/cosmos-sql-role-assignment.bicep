@@ -20,7 +20,7 @@ resource roleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignment
   properties: {
     roleDefinitionId: '${account.id}/sqlRoleDefinitions/${roleDefinitionId}'
     principalId: principalId
-    // Database-level scope per hansen-project-styles/preferences/security.md.
+    // Database-level scope keeps Cosmos RBAC aligned with the app's tenant boundary.
     scope: '${account.id}/dbs/${databaseName}'
   }
 }

@@ -10,6 +10,28 @@ Azure-native, event-driven chat prototype for a secure multi-tenant SaaS messagi
 - Azure Web PubSub used only for realtime fan-out; business logic remains in platform-owned services.
 - `azd` deployment shape now provisions ACR, a Container Apps environment, backend/frontend container apps, Web PubSub, Cosmos DB, App Insights, and Log Analytics.
 
+## What Gets Deployed
+
+1. Azure Container Registry for backend and frontend images.
+2. Container Apps environment plus separate backend and frontend container apps.
+3. Azure Web PubSub for room-scoped realtime delivery.
+4. Azure Cosmos DB for the event log and state/projection containers.
+5. Application Insights and Log Analytics for baseline observability.
+
+## Screenshots
+
+### Operations Chat
+
+![Operations Chat UI](media/ui-operations-chat.png)
+
+### Alex And Jordan Chat
+
+![Alex and Jordan Chat UI](media/ui-alex-jordan-chat.png)
+
+
+Architecture details live in [HOW_IT_WORKS.md](/workspaces/custom-azure-chat-service/HOW_IT_WORKS.md) and [docs/architecture.md](/workspaces/custom-azure-chat-service/docs/architecture.md).
+
+
 ## Prerequisites
 
 Open this repo in GitHub Codespaces or VS Code Dev Containers. The dev container is the supported environment.
@@ -56,31 +78,3 @@ The repo includes `scripts/azd-postdown.sh`, which waits for the Cosmos DB accou
 | `COSMOS_EVENTS_CONTAINER` | `events` | Authoritative event log container |
 | `COSMOS_STATE_CONTAINER` | `state` | Projection/read-model container |
 | `VITE_API_BASE_URL` | `http://localhost:8080/api` | Frontend API base URL |
-
-## What Gets Deployed
-
-1. Azure Container Registry for backend and frontend images.
-2. Container Apps environment plus separate backend and frontend container apps.
-3. Azure Web PubSub for room-scoped realtime delivery.
-4. Azure Cosmos DB for the event log and state/projection containers.
-5. Application Insights and Log Analytics for baseline observability.
-
-## Screenshots
-
-### Operations Chat
-
-![Operations Chat UI](media/ui-operations-chat.png)
-
-### Alex And Jordan Chat
-
-![Alex and Jordan Chat UI](media/ui-alex-jordan-chat.png)
-
-## Current Status
-
-- Pass 1 is complete: architecture skeleton, tenant-aware contracts, demo auth/token brokerage, Azure deployment skeleton, docs, and validation harness.
-- Pass 2 is complete: list/open thread, send message, realtime delivery, typing indicators, automatic read receipts, reactions, pin/unpin, and a separate search projection path.
-- Pass 3 is complete: room creation and deletion, participant add/remove/leave, message edit/delete/delivery/priority, archive/hide/mark-unread/follow-up state, thread-scoped notification preferences, quick template administration, directory filtering, context linking, assignment-driven membership updates, and audit visibility.
-- Local development includes a WebSocket-based realtime fallback so the full working slice can be exercised without provisioning Azure Web PubSub.
-- Validation includes backend unit and integration tests, workspace typecheck, shell smoke coverage, a multi-user Pass 2 UX test, and a Pass 3 admin/lifecycle UX test.
-
-Architecture details live in [HOW_IT_WORKS.md](/workspaces/custom-azure-chat-service/HOW_IT_WORKS.md) and [docs/architecture.md](/workspaces/custom-azure-chat-service/docs/architecture.md).

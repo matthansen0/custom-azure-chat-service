@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { ConnectionStatus } from "../realtime.js";
 
 const navItems = [
@@ -6,6 +7,12 @@ const navItems = [
   { id: "activity", icon: "🔔", label: "Activity" }
 ];
 
+const statusLabels: Record<ConnectionStatus, string> = {
+  connected: "Connected",
+  connecting: "Connecting…",
+  disconnected: "Disconnected"
+};
+
 interface ActivityBarProps {
   connectionStatus: ConnectionStatus;
   activeNav: string;
@@ -13,6 +20,8 @@ interface ActivityBarProps {
 }
 
 export function ActivityBar({ connectionStatus, activeNav, onNavChange }: ActivityBarProps) {
+  const [showStatus, setShowStatus] = useState(false);
+
   return (
     <div className="activity-bar">
       <div className="activity-bar__top">
@@ -29,7 +38,20 @@ export function ActivityBar({ connectionStatus, activeNav, onNavChange }: Activi
         ))}
       </div>
       <div className="activity-bar__bottom">
-        <div className={`connection-dot ${connectionStatus}`} title={connectionStatus} />
+        <button
+          className="connection-indicator"
+          onClick={() => setShowStatus((v) => !v)}
+          title={statusLabels[connectionStatus]}
+        >
+          <div className={`connection-dot ${connectionStatus}`} />
+          {showStatus && (
+            <div className="connection-popup">
+              <span className={`connection-popup__status ${connectionStatus}`}>
+                {statusLabels[connectionStatus]}
+              </span>
+            </div>
+          )}
+        </button>
       </div>
     </div>
   );

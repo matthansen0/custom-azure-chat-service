@@ -21,6 +21,8 @@ services:
       path: ./Dockerfile
       context: ../../
       remoteBuild: true
+      buildArgs:
+        - VITE_API_BASE_URL=${BACKEND_URL}/api
 hooks:
   preprovision:
     posix:

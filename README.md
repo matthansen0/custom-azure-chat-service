@@ -80,3 +80,7 @@ The repo includes `scripts/azd-postdown.sh`, which waits for the Cosmos DB accou
 | `COSMOS_EVENTS_CONTAINER` | `events` | Authoritative event log container |
 | `COSMOS_STATE_CONTAINER` | `state` | Projection/read-model container |
 | `VITE_API_BASE_URL` | `http://localhost:8080/api` | Frontend API base URL |
+
+## Disclaimer
+
+This code is provided "as is" with no warranties, and is not supported by the author in any way in any environments where it may be deployed. The author disclaims all implied warranties, including merchantability, fitness for a particular purpose, and non-infringement. In no event shall the author be liable for any direct, indirect, incidental, special, exemplary, or consequential damages arising in any way out of the use of this code.

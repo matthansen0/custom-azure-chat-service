@@ -1,6 +1,28 @@
 # Architecture
 
-![Architecture](architecture.svg)
+![Architecture](architecture.png)
+
+Editable source: [architecture.excalidraw](architecture.excalidraw)
+
+Authoring standard: Excalidraw with Microsoft/Azure icons from RKrokson/msft-icons-excalidraw.
+
+Legacy static export: [architecture.svg](architecture.svg)
+
+<details>
+<summary>Text-equivalent diagram (Mermaid accessibility fallback)</summary>
+
+```mermaid
+flowchart LR
+  C[Clients] -->|HTTPS| F[Frontend Shell]
+  F -->|commands| B[Backend API]
+  B -->|realtime token| W[Azure Web PubSub]
+  B -->|events| R[Event Router and Consumers]
+  R -->|projections| D[Cosmos DB]
+  W -.->|fan-out| C
+  W --> D
+```
+
+</details>
 
 ## Component Map
 

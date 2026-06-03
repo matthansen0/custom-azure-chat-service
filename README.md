@@ -1,8 +1,12 @@
-# Azure Event Chat Prototype
+# Azure Custom Chat App
 
 Azure-native, event-driven chat prototype for a secure multi-tenant SaaS messaging platform using React, Node.js, Azure Web PubSub, and Cosmos DB.
 
-![Architecture](docs/architecture.svg)
+![Architecture](docs/architecture.png)
+
+Editable source: [docs/architecture.excalidraw](docs/architecture.excalidraw)
+
+Accessibility fallback: [docs/architecture.md](docs/architecture.md)
 
 ## Overview
 

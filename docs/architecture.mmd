@@ -1,0 +1,32 @@
+flowchart LR
+  classDef client fill:#E0F2FE,stroke:#0EA5E9,color:#0C4A6E,stroke-width:1px;
+  classDef frontend fill:#DCFCE7,stroke:#16A34A,color:#14532D,stroke-width:1px;
+  classDef backend fill:#FEF3C7,stroke:#D97706,color:#7C2D12,stroke-width:1px;
+  classDef eventing fill:#EDE9FE,stroke:#7C3AED,color:#4C1D95,stroke-width:1px;
+  classDef azure fill:#FCE7F3,stroke:#DB2777,color:#831843,stroke-width:1px;
+  classDef data fill:#F1F5F9,stroke:#64748B,color:#334155,stroke-width:1px;
+  classDef deploy fill:#0F172A,stroke:#0F172A,color:#F8FAFC,stroke-width:1px;
+
+  C[Clients\n- React web prototype\n- Future mobile clients]:::client
+  F[Frontend Shell\n- Session bootstrap\n- Thread and composer UX\n- WebSocket delivery only]:::frontend
+  B[Backend API\n- Demo token issuance\n- AuthZ and tenant isolation\n- Commands to events\n- Realtime token brokerage]:::backend
+  R[Event Router and Consumers\n- Persistence consumer\n- Projection and search consumer\n- Audit emission\n- Preferences/templates/directory/context updates]:::eventing
+  W[Azure Web PubSub\n- Room-scoped fan-out\n- Delivery transport only]:::azure
+  D[Cosmos DB\n- Event log container\n- State and projection container\n- Search index and audit trail]:::data
+
+  C -->|HTTPS| F
+  F -->|commands| B
+  B -->|realtime tokens| W
+  B -->|events| R
+  R -->|projections| D
+  W -.->|fan-out| C
+  W --> D
+
+  DEP["Azure Deployment Shape (azd up)\nResource Group -> ACR -> Container Apps Environment\n-> Backend + Frontend Container Apps\n-> Web PubSub -> Cosmos DB -> App Insights + Log Analytics\n\nazd down --force --purge waits for Cosmos account-name release"]:::deploy
+
+  C --- DEP
+  F --- DEP
+  B --- DEP
+  R --- DEP
+  W --- DEP
+  D --- DEP

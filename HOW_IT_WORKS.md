@@ -1,5 +1,13 @@
 # How It Works
 
+## Detailed Architecture
+
+![Detailed Architecture](docs/architecture.png)
+
+Editable source: [docs/architecture.excalidraw](docs/architecture.excalidraw)
+
+Accessibility fallback: [docs/architecture.md](docs/architecture.md)
+
 ## Design Decisions
 
 ### Why model chat as events instead of socket RPC?

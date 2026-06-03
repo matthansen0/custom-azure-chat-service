@@ -1,4 +1,4 @@
-flowchart LR
+flowchart TB
   classDef client fill:#E0F2FE,stroke:#0EA5E9,color:#0C4A6E,stroke-width:1px;
   classDef frontend fill:#DCFCE7,stroke:#16A34A,color:#14532D,stroke-width:1px;
   classDef backend fill:#FEF3C7,stroke:#D97706,color:#7C2D12,stroke-width:1px;
@@ -7,12 +7,12 @@ flowchart LR
   classDef data fill:#F1F5F9,stroke:#64748B,color:#334155,stroke-width:1px;
   classDef deploy fill:#0F172A,stroke:#0F172A,color:#F8FAFC,stroke-width:1px;
 
-  C[Clients\n- React web prototype\n- Future mobile clients]:::client
-  F[Frontend Shell\n- Session bootstrap\n- Thread and composer UX\n- WebSocket delivery only]:::frontend
-  B[Backend API\n- Demo token issuance\n- AuthZ and tenant isolation\n- Commands to events\n- Realtime token brokerage]:::backend
-  R[Event Router and Consumers\n- Persistence consumer\n- Projection and search consumer\n- Audit emission\n- Preferences/templates/directory/context updates]:::eventing
-  W[Azure Web PubSub\n- Room-scoped fan-out\n- Delivery transport only]:::azure
-  D[Cosmos DB\n- Event log container\n- State and projection container\n- Search index and audit trail]:::data
+  C[Clients\nReact web + mobile]:::client
+  F[Frontend Shell\nThread list + composer + presence]:::frontend
+  B[Backend API\nAuthZ/tenant checks + commands->events]:::backend
+  R[Event Router\nPersistence + projections + audit]:::eventing
+  W[Azure Web PubSub\nRealtime fan-out only]:::azure
+  D[Cosmos DB\nEvent log + state/projections]:::data
 
   C -->|HTTPS| F
   F -->|commands| B
@@ -22,11 +22,17 @@ flowchart LR
   W -.->|fan-out| C
   W --> D
 
-  DEP["Azure Deployment Shape (azd up)\nResource Group -> ACR -> Container Apps Environment\n-> Backend + Frontend Container Apps\n-> Web PubSub -> Cosmos DB -> App Insights + Log Analytics\n\nazd down --force --purge waits for Cosmos account-name release"]:::deploy
+  subgraph AZ["Azure Deployment Shape (azd up)"]
+    DEP1[Resource Group]:::deploy
+    DEP2[ACR]:::deploy
+    DEP3[Container Apps Env]:::deploy
+    DEP4[Backend + Frontend Apps]:::deploy
+    DEP5[Web PubSub]:::deploy
+    DEP6[Cosmos DB]:::deploy
+    DEP7[App Insights + Log Analytics]:::deploy
+    DEP1 --> DEP2 --> DEP3 --> DEP4 --> DEP5 --> DEP6 --> DEP7
+  end
 
-  C --- DEP
-  F --- DEP
-  B --- DEP
-  R --- DEP
-  W --- DEP
-  D --- DEP
+  B -. deploys on .-> DEP4
+  W -. provisioned by .-> DEP5
+  D -. provisioned by .-> DEP6

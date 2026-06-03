@@ -1,0 +1,24 @@
+flowchart LR
+  classDef ext fill:#E2E8F0,stroke:#475569,color:#0F172A,stroke-width:1px;
+  classDef app fill:#DCFCE7,stroke:#16A34A,color:#14532D,stroke-width:1px;
+  classDef azure fill:#DBEAFE,stroke:#2563EB,color:#1E3A8A,stroke-width:1px;
+  classDef data fill:#F1F5F9,stroke:#64748B,color:#334155,stroke-width:1px;
+  classDef obs fill:#FEF3C7,stroke:#D97706,color:#7C2D12,stroke-width:1px;
+
+  U[Users\nBrowser + Mobile]:::ext
+
+  subgraph AZ[Azure Subscription / Resource Group]
+    FE[Frontend Container App\nNginx static web]:::app
+    BE[Backend Container App\nNode/Express API]:::app
+    WP[Azure Web PubSub\nRealtime delivery]:::azure
+    COS[Azure Cosmos DB\nEvents + state/projections]:::data
+    AI[Application Insights\n+ Log Analytics]:::obs
+  end
+
+  U -->|HTTPS| FE
+  FE -->|/api HTTPS| BE
+  BE -->|publish events| WP
+  WP -->|WebSocket fan-out| U
+  BE -->|read/write| COS
+  BE -->|telemetry| AI
+  FE -->|telemetry| AI

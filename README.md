@@ -2,11 +2,9 @@
 
 Azure-native, event-driven chat prototype for a secure multi-tenant SaaS messaging platform using React, Node.js, Azure Web PubSub, and Cosmos DB.
 
-![Architecture](docs/architecture.png)
+![Runtime Architecture](docs/runtime-architecture.png)
 
-Editable source: [docs/architecture.excalidraw](docs/architecture.excalidraw)
-
-Accessibility fallback: [docs/architecture.md](docs/architecture.md)
+Detailed system/event architecture: [HOW_IT_WORKS.md](HOW_IT_WORKS.md)
 
 ## Overview
 
@@ -33,7 +31,7 @@ Accessibility fallback: [docs/architecture.md](docs/architecture.md)
 ![Alex and Jordan Chat UI](media/ui-alex-jordan-chat.png)
 
 
-Architecture details live in [HOW_IT_WORKS.md](/workspaces/custom-azure-chat-service/HOW_IT_WORKS.md) and [docs/architecture.md](/workspaces/custom-azure-chat-service/docs/architecture.md).
+Detailed architecture and event flow live in [HOW_IT_WORKS.md](/workspaces/custom-azure-chat-service/HOW_IT_WORKS.md).
 
 
 ## Prerequisites

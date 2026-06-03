@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-label="Runtime architecture with Azure services">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0 0L10 5L0 10Z" fill="#334155"/>
+    </marker>
+    <style>
+      .title { font: 700 42px 'DejaVu Sans', Arial, sans-serif; fill: #0f172a; }
+      .subtitle { font: 500 22px 'DejaVu Sans', Arial, sans-serif; fill: #475569; }
+      .label { font: 600 21px 'DejaVu Sans', Arial, sans-serif; fill: #0f172a; }
+      .flow { font: 500 18px 'DejaVu Sans', Arial, sans-serif; fill: #334155; }
+      .boundary { fill: #eff6ff; stroke: #2563eb; stroke-width: 2; stroke-dasharray: 10 8; rx: 20; }
+      .user { fill: #ffffff; stroke: #475569; stroke-width: 2; rx: 16; }
+      .line { stroke: #334155; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .line-dash { stroke: #334155; stroke-width: 3; fill: none; stroke-dasharray: 8 7; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#ffffff"/>
+
+  <text x="70" y="75" class="title">Runtime Architecture (Azure Services)</text>
+  <text x="70" y="110" class="subtitle">Production runtime flow used by the deployed chat application</text>
+
+  <rect x="55" y="250" width="250" height="150" class="user"/>
+  <text x="100" y="320" class="label">Browser Clients</text>
+  <text x="100" y="350" class="flow">Web + Mobile</text>
+
+  <rect x="350" y="150" width="1185" height="640" class="boundary"/>
+  <text x="380" y="185" class="label" fill="#1e3a8a">Azure Subscription / Resource Group</text>
+
+  <image href="icons/container-app.svg" x="430" y="250" width="105" height="105"/>
+  <text x="560" y="282" class="label">Frontend Container App</text>
+  <text x="560" y="348" class="flow">React + Nginx</text>
+
+  <image href="icons/container-app.svg" x="430" y="430" width="105" height="105"/>
+  <text x="560" y="464" class="label">Backend Container App</text>
+  <text x="560" y="528" class="flow">Node + Express API</text>
+
+  <image href="icons/web-pubsub.svg" x="980" y="250" width="105" height="105"/>
+  <text x="1110" y="300" class="label">Azure Web PubSub</text>
+  <text x="1110" y="330" class="flow">Hub: chat</text>
+
+  <image href="icons/cosmos-db.svg" x="980" y="430" width="105" height="105"/>
+  <text x="1110" y="480" class="label">Azure Cosmos DB</text>
+  <text x="1110" y="510" class="flow">Events + projections</text>
+
+  <image href="icons/app-insights.svg" x="980" y="580" width="105" height="105"/>
+  <text x="980" y="730" class="label">Application Insights</text>
+
+  <image href="icons/log-analytics.svg" x="1290" y="580" width="105" height="105"/>
+  <text x="1290" y="730" class="label">Log Analytics</text>
+
+  <path d="M305 320H430" class="line"/>
+  <text x="335" y="305" class="flow">HTTPS</text>
+
+  <path d="M535 302H980" class="line"/>
+  <text x="705" y="266" class="flow">/api HTTPS</text>
+
+  <path d="M535 482H980" class="line"/>
+  <text x="690" y="446" class="flow">publish events</text>
+
+  <path d="M980 320C850 320 850 320 305 320" class="line-dash"/>
+  <text x="690" y="355" class="flow">WebSocket fan-out</text>
+
+  <path d="M1085 482H980" class="line"/>
+  <text x="991" y="468" class="flow">read/write</text>
+
+  <path d="M1085 700H980" class="line"/>
+  <text x="1000" y="692" class="flow">telemetry</text>
+
+  <path d="M1085 700H1290" class="line"/>
+  <text x="1165" y="692" class="flow">export</text>
+</svg>

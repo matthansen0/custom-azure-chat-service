@@ -2,9 +2,11 @@
 
 Azure-native, event-driven chat prototype for a secure multi-tenant SaaS messaging platform using React, Node.js, Azure Web PubSub, and Cosmos DB.
 
-![Runtime Architecture](docs/runtime-architecture.png)
+![Architecture](docs/architecture.png)
 
-Detailed system/event architecture: [HOW_IT_WORKS.md](HOW_IT_WORKS.md)
+Editable source: [docs/architecture.excalidraw](docs/architecture.excalidraw)
+
+Accessibility fallback: [docs/architecture.md](docs/architecture.md)
 
 ## Overview
 
@@ -31,7 +33,7 @@ Detailed system/event architecture: [HOW_IT_WORKS.md](HOW_IT_WORKS.md)
 ![Alex and Jordan Chat UI](media/ui-alex-jordan-chat.png)
 
 
-Detailed architecture and event flow live in [HOW_IT_WORKS.md](/workspaces/custom-azure-chat-service/HOW_IT_WORKS.md).
+Architecture details live in [HOW_IT_WORKS.md](/workspaces/custom-azure-chat-service/HOW_IT_WORKS.md) and [docs/architecture.md](/workspaces/custom-azure-chat-service/docs/architecture.md).
 
 
 ## Prerequisites
@@ -80,7 +82,3 @@ The repo includes `scripts/azd-postdown.sh`, which waits for the Cosmos DB accou
 | `COSMOS_EVENTS_CONTAINER` | `events` | Authoritative event log container |
 | `COSMOS_STATE_CONTAINER` | `state` | Projection/read-model container |
 | `VITE_API_BASE_URL` | `http://localhost:8080/api` | Frontend API base URL |
-
-## Disclaimer
-
-This code is provided "as is" with no warranties, and is not supported by the author in any way in any environments where it may be deployed. The author disclaims all implied warranties, including merchantability, fitness for a particular purpose, and non-infringement. In no event shall the author be liable for any direct, indirect, incidental, special, exemplary, or consequential damages arising in any way out of the use of this code.

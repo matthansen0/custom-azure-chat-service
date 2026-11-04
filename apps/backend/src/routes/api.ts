@@ -40,10 +40,10 @@ export function createApiRouter(dependencies: {
         type: z.string().min(1),
         contextId: z.string().min(1),
         label: z.string().min(1),
-        metadata: z.record(z.any()).default({})
+        metadata: z.record(z.string(), z.any()).default({})
       })
       .optional(),
-    metadata: z.record(z.any()).default({})
+    metadata: z.record(z.string(), z.any()).default({})
   });
   const participantSchema = z.object({
     participantIds: z.array(z.string().min(1)).min(1)
@@ -68,7 +68,7 @@ export function createApiRouter(dependencies: {
     type: z.string().min(1),
     contextId: z.string().min(1),
     label: z.string().min(1),
-    metadata: z.record(z.any()).default({})
+    metadata: z.record(z.string(), z.any()).default({})
   });
   const assignmentSchema = z.object({
     participantIds: z.array(z.string().min(1)).min(1)

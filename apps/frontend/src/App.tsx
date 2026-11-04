@@ -17,10 +17,12 @@ export function App() {
   const [showNewChat, setShowNewChat] = useState(false);
 
   const typingUsers = useMemo(
-    () =>
-      Object.keys(chat.typingByUser).filter(
-        (id) => id !== chat.userId && chat.typingByUser[id] > Date.now()
-      ),
+    () => {
+      const now = Date.now();
+      return Object.entries(chat.typingByUser)
+        .filter(([id, startedAt]) => id !== chat.userId && now - startedAt < 3000)
+        .map(([id]) => id);
+    },
     [chat.typingByUser, chat.userId]
   );
 
@@ -127,4 +129,3 @@ export function App() {
     </div>
   );
 }
-

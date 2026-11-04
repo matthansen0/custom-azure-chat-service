@@ -15,7 +15,12 @@ export function App() {
     const [activeNav, setActiveNav] = useState("chat");
     const [showMembers, setShowMembers] = useState(true);
     const [showNewChat, setShowNewChat] = useState(false);
-    const typingUsers = useMemo(() => Object.keys(chat.typingByUser).filter((id) => id !== chat.userId && chat.typingByUser[id] > Date.now()), [chat.typingByUser, chat.userId]);
+    const typingUsers = useMemo(() => {
+        const now = Date.now();
+        return Object.entries(chat.typingByUser)
+            .filter(([id, startedAt]) => id !== chat.userId && now - startedAt < 3000)
+            .map(([id]) => id);
+    }, [chat.typingByUser, chat.userId]);
     const handleNavSelectRoom = (roomId) => {
         chat.selectRoom(roomId);
         setActiveNav("chat");

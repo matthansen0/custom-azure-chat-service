@@ -13,8 +13,8 @@ test("Pass 3 users create, discover, and manage a shared room", async ({ browser
   try {
     await adminPage.goto("/?user=u1");
     await participantPage.goto("/?user=u2");
-    await expect(adminPage.getByTitle("Connected")).toBeVisible();
-    await expect(participantPage.getByTitle("Connected")).toBeVisible();
+    await expect(adminPage.getByTitle("Connected", { exact: true })).toBeVisible();
+    await expect(participantPage.getByTitle("Connected", { exact: true })).toBeVisible();
 
     await adminPage.getByTitle("New chat").click();
     await adminPage.getByLabel("Chat name").fill(roomName);

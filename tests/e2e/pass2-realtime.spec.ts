@@ -16,8 +16,8 @@ test("Pass 2 users type, exchange messages, react, reply, and see read receipts"
     await rightPage.goto("/?user=u2");
     await expect(leftPage.getByRole("heading", { name: "Operations" })).toBeVisible();
     await expect(rightPage.getByRole("heading", { name: "Operations" })).toBeVisible();
-    await expect(leftPage.getByTitle("Connected")).toBeVisible();
-    await expect(rightPage.getByTitle("Connected")).toBeVisible();
+    await expect(leftPage.getByTitle("Connected", { exact: true })).toBeVisible();
+    await expect(rightPage.getByTitle("Connected", { exact: true })).toBeVisible();
 
     const typingResponsePromise = leftPage.waitForResponse((response) =>
       response.url().endsWith("/api/rooms/r-ops/typing") && response.request().method() === "POST"

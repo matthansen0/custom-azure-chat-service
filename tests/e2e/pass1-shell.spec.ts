@@ -5,7 +5,7 @@ test("Pass 1 shell loads seeded chat rooms", async ({ page }) => {
 
   await expect(page.getByRole("heading", { name: "Chat", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Operations" })).toBeVisible();
-  await expect(page.getByTitle("Connected")).toBeVisible();
+  await expect(page.getByTitle("Connected", { exact: true })).toBeVisible();
   await expect(page.getByRole("combobox")).toHaveValue("u1");
   await expect(page.getByPlaceholder("Type a new message... (use @ to mention)")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Members" })).toBeVisible();

@@ -1,4 +1,15 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page, type Response } from "@playwright/test";
+
+async function deleteCreatedResource(page: Page, response: Response, id: string): Promise<void> {
+  const authorization = response.request().headers().authorization;
+  if (!authorization) {
+    throw new Error("Expected an authorization header on the create request");
+  }
+  const deletion = await page.request.delete(`${response.url()}/${encodeURIComponent(id)}`, {
+    headers: { Authorization: authorization }
+  });
+  expect(deletion.status()).toBe(200);
+}
 
 test("the current chat shell loads and connects", async ({ page }) => {
   await page.goto("/?user=u1");
@@ -27,15 +38,25 @@ test("two users exchange messages and reactions in real time", async ({ browser 
     await expect(rightPage.getByRole("heading", { name: "Operations" })).toBeVisible();
 
     await leftPage.getByPlaceholder("Type a new message... (use @ to mention)").fill(message);
+    const responsePromise = leftPage.waitForResponse((response) =>
+      response.url().endsWith("/api/rooms/r-ops/messages") && response.request().method() === "POST"
+    );
     await leftPage.getByTitle("Send").click();
+    const response = await responsePromise;
+    expect(response.status()).toBe(201);
+    const body = (await response.json()) as { event: { entityId: string } };
 
-    const leftMessage = leftPage.locator(".message-bubble").filter({ hasText: message });
-    const rightMessage = rightPage.locator(".message-bubble").filter({ hasText: message });
-    await expect(leftMessage).toBeVisible();
-    await expect(rightMessage).toBeVisible({ timeout: 10_000 });
-    await rightMessage.hover();
-    await rightMessage.getByTitle("React \u{1f44d}").click();
-    await expect(leftMessage.getByRole("button", { name: "\u{1f44d} 1" })).toBeVisible({ timeout: 10_000 });
+    try {
+      const leftMessage = leftPage.locator(".message-bubble").filter({ hasText: message });
+      const rightMessage = rightPage.locator(".message-bubble").filter({ hasText: message });
+      await expect(leftMessage).toBeVisible();
+      await expect(rightMessage).toBeVisible({ timeout: 10_000 });
+      await rightMessage.hover();
+      await rightMessage.getByTitle("React \u{1f44d}").click();
+      await expect(leftMessage.getByRole("button", { name: "\u{1f44d} 1" })).toBeVisible({ timeout: 10_000 });
+    } finally {
+      await deleteCreatedResource(leftPage, response, body.event.entityId);
+    }
   } finally {
     await leftContext.close();
     await rightContext.close();
@@ -56,7 +77,11 @@ test("the current UI creates a room with default metadata", async ({ page }) => 
   await page.getByRole("button", { name: "Create", exact: true }).click();
   const response = await responsePromise;
   expect(response.status()).toBe(201);
-  const body = (await response.json()) as { event: { payload: { metadata: unknown } } };
-  expect(body.event.payload.metadata).toEqual({});
-  await expect(page.getByRole("heading", { name: roomName })).toBeVisible();
+  const body = (await response.json()) as { roomId: string; event: { payload: { metadata: unknown } } };
+  try {
+    expect(body.event.payload.metadata).toEqual({});
+    await expect(page.getByRole("heading", { name: roomName })).toBeVisible();
+  } finally {
+    await deleteCreatedResource(page, response, body.roomId);
+  }
 });

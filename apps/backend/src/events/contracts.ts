@@ -48,7 +48,7 @@ export const eventEnvelopeSchema = z.object({
   roomId: z.string().nullable(),
   actorUserId: z.string(),
   entityId: z.string(),
-  payload: z.record(z.any()),
+  payload: z.record(z.string(), z.any()),
   version: z.number().int().positive(),
   sequenceNumber: z.number().int().nonnegative().nullable(),
   idempotencyKey: z.string()

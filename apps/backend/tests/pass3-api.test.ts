@@ -278,3 +278,90 @@ test("Pass 3 supports message lifecycle and quick template administration", asyn
     await stopTestServer(server);
   }
 });
+
+test("room and context metadata validate records and preserve defaults", async () => {
+  const { server, baseUrl } = await startTestServer();
+
+  try {
+    const token = await demoLogin(baseUrl, "u1");
+    const headers = authHeaders(token);
+    const context = { type: "case", contextId: "case-1", label: "Case 1" };
+    const metadata = { source: "test", nested: { active: true }, values: [1, "two"] };
+
+    const createResponse = await fetch(`${baseUrl}/rooms`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        name: "Metadata room",
+        type: "group",
+        linkedContext: { ...context, metadata },
+        metadata
+      })
+    });
+    assert.equal(createResponse.status, 201);
+    const created = (await createResponse.json()) as {
+      roomId: string;
+      event: { payload: { metadata: unknown; linkedContext: { metadata: unknown } } };
+    };
+    assert.deepEqual(created.event.payload.metadata, metadata);
+    assert.deepEqual(created.event.payload.linkedContext.metadata, metadata);
+
+    const defaultResponse = await fetch(`${baseUrl}/rooms`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ name: "Default metadata", type: "group", linkedContext: context })
+    });
+    assert.equal(defaultResponse.status, 201);
+    const defaults = (await defaultResponse.json()) as {
+      event: { payload: { metadata: unknown; linkedContext: { metadata: unknown } } };
+    };
+    assert.deepEqual(defaults.event.payload.metadata, {});
+    assert.deepEqual(defaults.event.payload.linkedContext.metadata, {});
+
+    for (const value of [metadata, undefined]) {
+      const linkResponse = await fetch(`${baseUrl}/rooms/${created.roomId}/context-link`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ ...context, metadata: value })
+      });
+      assert.equal(linkResponse.status, 201);
+      const linked = (await linkResponse.json()) as {
+        event: { payload: { linkedContext: { metadata: unknown } } };
+      };
+      assert.deepEqual(linked.event.payload.linkedContext.metadata, value ?? {});
+    }
+
+    const invalidRequests = [
+      {
+        path: "/rooms",
+        body: { name: "Invalid metadata", type: "group", metadata: [] },
+        field: "metadata"
+      },
+      {
+        path: "/rooms",
+        body: { name: "Invalid context", type: "group", linkedContext: { ...context, metadata: "invalid" } },
+        field: "linkedContext"
+      },
+      {
+        path: `/rooms/${created.roomId}/context-link`,
+        body: { ...context, metadata: null },
+        field: "metadata"
+      }
+    ];
+    for (const request of invalidRequests) {
+      const response = await fetch(`${baseUrl}${request.path}`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(request.body)
+      });
+      assert.equal(response.status, 400);
+      const result = (await response.json()) as {
+        error: { formErrors: string[]; fieldErrors: Record<string, string[]> };
+      };
+      assert.ok(Array.isArray(result.error.formErrors));
+      assert.ok(result.error.fieldErrors[request.field]?.length);
+    }
+  } finally {
+    await stopTestServer(server);
+  }
+});
